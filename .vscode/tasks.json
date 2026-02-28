@@ -1,0 +1,41 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Compilar Jogo Completo",
+            "command": "C:\\msys64\\mingw64\\bin\\g++.exe",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "-Iinclude", 
+                "main.cpp",
+                "src/core/*.cpp",
+                "src/graphics/*.cpp",
+                "src/input/*.cpp",
+                "src/level/*.cpp",
+                "src/utils/*.cpp",
+                "src/audio/*.cpp", 
+                "-o",
+                "${workspaceFolder}\\main.exe",
+                "-lopengl32",
+                "-lglu32",
+                "-lfreeglut",
+                "-lglew32",
+                "-lopenal",
+                "-lalut"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Compilação manual de todas as pastas src"
+        }
+    ]
+}
