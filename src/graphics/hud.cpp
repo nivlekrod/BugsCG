@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 #include <string>
 #include <cstdlib>
+#include <cmath>
 
 void drawDevourCounter(int w, int h, int queimados);
 
@@ -140,48 +141,68 @@ static void drawDoomBar(int w, int h, const HudTextures& tex, const HudState& s)
         glDisable(GL_BLEND);
     }
 
-    glLineWidth(3.0f);
-    glColor3f(0.7f, 0.7f, 0.75f);
-    glBegin(GL_LINES); glVertex2f(0, hBar); glVertex2f((float)w, hBar); glEnd();
+    // Bordas e linhas separadoras REMOVIDAS a pedido do usuário
+    // glLineWidth(3.0f);
+    // glColor3f(0.7f, 0.7f, 0.75f);
+    // glBegin(GL_LINES); glVertex2f(0, hBar); glVertex2f((float)w, hBar); glEnd();
+    // glColor3f(0.2f, 0.2f, 0.25f);
+    // glBegin(GL_LINES); glVertex2f(w / 2.0f, 0); glVertex2f(w / 2.0f, hBar); glEnd();
 
-    glColor3f(0.2f, 0.2f, 0.25f);
-    glBegin(GL_LINES); glVertex2f(w / 2.0f, 0); glVertex2f(w / 2.0f, hBar); glEnd();
-
-    float scaleLbl = 0.0018f * hBar;
-    float scaleNum = 0.0035f * hBar;
-    float colLbl[3] = {1.0f, 0.8f, 0.5f};
+    float scaleLbl = 0.0030f * hBar * 0.5f; // Reduzido bastante
+    float scaleNum = 0.0035f * hBar * 0.5f; // Reduzido bastante
+    float colLbl[3] = {1.0f, 1.0f, 1.0f}; // Texto branco
     float colNum[3] = {0.8f, 0.0f, 0.0f};
+
+    // Desliga a textura temporariamente para desenhar os textos e blocos com cores sólidas puras
+    glDisable(GL_TEXTURE_2D);
 
     float xTextHealth = w * 0.08f;
     float yLblHealth = hBar * 0.35f;
     glColor3fv(colLbl);
     uiDrawStrokeText(xTextHealth, yLblHealth, "HEALTH", scaleLbl);
 
-    float barH = hBar * 0.5f;
+    float barH = hBar * 0.3f; // Levemente menor (era 0.4f)
     float barY = (hBar - barH) / 2.0f;
     float barX = xTextHealth + (w * 0.08f);
-    float barMaxW = (w * 0.45f) - barX;
+    
+    // --- Lógica de Retângulos Sequenciais ---
+    int maxRects = 3; // 3 retângulos de vida
+    float maxVida = 100.0f;
+    float vidaPorRect = maxVida / maxRects;
+    int rectsAtivos = 0;
 
-    glColor4f(0, 0, 0, 1);
-    glBegin(GL_QUADS);
-    glVertex2f(barX, barY); glVertex2f(barX + barMaxW, barY);
-    glVertex2f(barX + barMaxW, barY + barH); glVertex2f(barX, barY + barH);
-    glEnd();
+    if (s.playerHealth > 0) {
+        rectsAtivos = (int)std::ceil((float)s.playerHealth / vidaPorRect);
+        if (rectsAtivos > maxRects) rectsAtivos = maxRects;
+    }
 
-    float pct = (float)s.playerHealth / 100.0f;
-    if (pct < 0) pct = 0;
-    if (pct > 1) pct = 1;
+    float rectW = w * 0.04f; // Largura de cada retângulo (era 0.05f)
+    float rectSpacing = w * 0.01f; // Espaçamento
 
-    if (pct > 0.6f) glColor3f(0.0f, 0.8f, 0.0f);
-    else if (pct > 0.3f) glColor3f(1.0f, 0.8f, 0.0f);
-    else glColor3f(0.8f, 0.0f, 0.0f);
+    // Fundo escuro para os retângulos perdidos (para dar contraste caso tenha texHudFundo clara)
+    glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+    for (int i = 0; i < maxRects; ++i) {
+        float currentX = barX + i * (rectW + rectSpacing);
+        glBegin(GL_QUADS);
+        glVertex2f(currentX, barY);
+        glVertex2f(currentX + rectW, barY);
+        glVertex2f(currentX + rectW, barY + barH);
+        glVertex2f(currentX, barY + barH);
+        glEnd();
+    }
 
-    glBegin(GL_QUADS);
-    glVertex2f(barX, barY);
-    glVertex2f(barX + (barMaxW * pct), barY);
-    glVertex2f(barX + (barMaxW * pct), barY + barH);
-    glVertex2f(barX, barY + barH);
-    glEnd();
+    // Cor verde para os retângulos de vida ATIVOS
+    glColor3f(0.0f, 0.8f, 0.0f); 
+
+    for (int i = 0; i < rectsAtivos; ++i) {
+        float currentX = barX + i * (rectW + rectSpacing);
+        glBegin(GL_QUADS);
+        glVertex2f(currentX, barY);
+        glVertex2f(currentX + rectW, barY);
+        glVertex2f(currentX + rectW, barY + barH);
+        glVertex2f(currentX, barY + barH);
+        glEnd();
+    }
 
     if (tex.texGunHUD != 0)
     {
@@ -190,8 +211,8 @@ static void drawDoomBar(int w, int h, const HudTextures& tex, const HudState& s)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor3f(1, 1, 1);
 
-        float iconSize = hBar * 1.5f;
-        float iconY = (hBar - iconSize) / 2.0f + (hBar * 0.1f);
+        float iconSize = hBar * 0.6f; // Reduzido MUITO
+        float iconY = (hBar - iconSize) / 2.0f; // Centralizado
 
         glBindTexture(GL_TEXTURE_2D, tex.texGunHUD);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
