@@ -49,6 +49,8 @@ struct AudioSystem {
     ALuint srcKill = 0;
     ALuint srcCollectHD = 0;
     ALuint srcBurnHD = 0;
+    ALuint srcBurnLava = 0;
+    float burnLavaTimer = 0.0f;
 
     ALuint srcLava = 0;
     bool lavaPlaying = false;

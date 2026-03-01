@@ -279,6 +279,16 @@ void audioInit(AudioSystem& a, const Level& level) {
             a.engine.setSourcePitch(a.srcBurnHD, 4.0f); // Pitch extremamente alto transforma o tiro em um estalo seco
         }
     }
+    
+    // Efeito secundário da queima do HD (Borbulho rápido)
+    if (a.bufLava) {
+        a.srcBurnLava = a.engine.createSource(a.bufLava, false);
+        if (a.srcBurnLava) {
+            alSourcei(a.srcBurnLava, AL_SOURCE_RELATIVE, AL_TRUE);
+            alSource3f(a.srcBurnLava, AL_POSITION, 0, 0, 0);
+            a.engine.setSourceGain(a.srcBurnLava, AudioTuning::MASTER * 1.5f);
+        }
+    }
 
     // Hurt (2D one-shot)
     if (a.bufHurt) {
@@ -337,6 +347,14 @@ void audioUpdate(
 
     // Listener
     a.engine.setListener(listener.pos, listener.vel, listener.forward, listener.up);
+
+    // Controle do som secundário de queima (borbulho do HD afundando)
+    if (a.burnLavaTimer > 0.0f) {
+        a.burnLavaTimer -= dt;
+        if (a.burnLavaTimer <= 0.0f && a.srcBurnLava) {
+            a.engine.stop(a.srcBurnLava); // Para o borbulho após 2 segundos
+        }
+    }
 
     // Step
     if (a.srcStep) {
@@ -515,9 +533,19 @@ void audioPlayCollectHD(AudioSystem& a) {
 }
 
 void audioPlayBurnHD(AudioSystem& a) {
-    if (!a.ok || a.srcBurnHD == 0) return;
-    a.engine.stop(a.srcBurnHD);
-    a.engine.play(a.srcBurnHD);
+    if (!a.ok) return;
+    
+    if (a.srcBurnHD) {
+        a.engine.stop(a.srcBurnHD);
+        a.engine.play(a.srcBurnHD);
+    }
+    
+    // Inicia o borbulho
+    if (a.srcBurnLava) {
+        a.engine.stop(a.srcBurnLava);
+        a.engine.play(a.srcBurnLava);
+        a.burnLavaTimer = 2.0f; // 2 segundos de duração
+    }
 }
 
 void audioOnPlayerShot(AudioSystem& a) {
