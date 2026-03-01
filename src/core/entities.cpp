@@ -33,6 +33,16 @@ bool isWalkable(float x, float z)
     return true;
 }
 
+// Variáveis de escopo de arquivo para permitir reset externo via resetSpawnState()
+static float spawnNewEnemyTimer = 45.0f;
+static int enemiesSpawnedThisPhase = 0;
+
+void resetSpawnState()
+{
+    spawnNewEnemyTimer = 45.0f;    // Volta ao intervalo inicial de 45 segundos
+    enemiesSpawnedThisPhase = 0;   // Zera o contador que controla o drop de munição
+}
+
 void updateEntities(float dt)
 {
     auto& g = gameContext();
@@ -40,7 +50,6 @@ void updateEntities(float dt)
     auto& audio = gameAudio();
 
     // --- LÓGICA DE SPAWN DE NOVOS INIMIGOS COM O TEMPO ---
-    static float spawnNewEnemyTimer = 45.0f;
     spawnNewEnemyTimer -= dt;
     if (spawnNewEnemyTimer <= 0.0f)
     {
@@ -76,7 +85,6 @@ void updateEntities(float dt)
             }
         }
 
-        static int enemiesSpawnedThisPhase = 0;
         if (found)
         {
             Enemy newEn;

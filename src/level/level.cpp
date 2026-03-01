@@ -73,6 +73,7 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
         }
     }
 
+    lvl.originalEnemyCount = (int)lvl.enemies.size(); // Marca o limite: tudo além disso foi spawnado em jogo
     return true;
 }
 

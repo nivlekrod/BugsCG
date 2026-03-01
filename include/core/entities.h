@@ -2,6 +2,7 @@
 
 bool isWalkable(float x, float z);
 void updateEntities(float dt);
+void resetSpawnState(); // Zera os timers e contadores de spawn dinâmico (chamado no gameReset)
 
 const float ENEMY_SPEED = 2.5f;
 

@@ -9,6 +9,7 @@ struct Level
     MapLoader map;
     LevelMetrics metrics;
     std::vector<Enemy> enemies;
+    int originalEnemyCount = 0; // Quantidade de inimigos carregados do mapa (exclui os spawnados dinamicamente)
 
     // ADICIONE ESTA LINHA:
     std::vector<Item> items;

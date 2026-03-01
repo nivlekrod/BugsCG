@@ -154,14 +154,20 @@ void gameReset()
     applySpawn(gLevel, camX, camZ); // Volta o player pro lugar de início
 
     // --- 3. RESETA O MAPA (Revive HDs e Troca o Boss) ---
+    gLevel.enemies.resize(gLevel.originalEnemyCount); // Remove os inimigos spawnados dinamicamente durante a partida
+    gLevel.items.clear();                              // Remove itens (munição) que spawnaram durante a partida
+    resetSpawnState();                                 // Zera os timers de spawn para não spawnar imediatamente ao reiniciar
+
     for (auto &en : gLevel.enemies)
     {
         // Devolve TODO MUNDO para a posição original que estava no mapa
         en.x = en.startX;
         en.z = en.startZ;
-        en.state = STATE_IDLE; // Revive os HDs que tinham sumido
+        en.hp = 100.0f;           // Reseta o HP (necessário para quem morreu antes do reset)
+        en.state = STATE_IDLE;
         en.attackCooldown = 0.0f;
         en.hurtTimer = 0.0f;
+        en.respawnTimer = 0.0f;   // Cancela qualquer contagem de respawn pendente
 
         // Se for um Boss (Tipos 0, 1 ou 2), muda a skin dele para a fase atual!
         if (en.type == 0 || en.type == 1 || en.type == 2)
