@@ -28,6 +28,12 @@ struct HudState
     float healthAlpha = 0.0f;
     int componentesCarregados = 0;
 
+    // VARIÁVEIS A ADICIONAR PARA O HUD DA ARMA:
+    WeaponState weaponState = WeaponState::W_IDLE;
+    int currentAmmo = 12;
+    int reserveAmmo = 25;
+
+    bool showAmmoDropWarning = false;
 };
 
 void hudRenderAll(

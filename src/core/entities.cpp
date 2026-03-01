@@ -9,6 +9,7 @@
 // --- VARIÁVEIS EXTERNAS DO DEVOUR ---
 extern int componentesCarregados;
 extern int componentesQueimados;
+extern int faseAtual;
 
 // MANTIDO: Função de colisão original do seu motor
 bool isWalkable(float x, float z)
@@ -38,10 +39,150 @@ void updateEntities(float dt)
     auto& lvl = gameLevel();
     auto& audio = gameAudio();
 
+    // --- LÓGICA DE SPAWN DE NOVOS INIMIGOS COM O TEMPO ---
+    static float spawnNewEnemyTimer = 45.0f;
+    spawnNewEnemyTimer -= dt;
+    if (spawnNewEnemyTimer <= 0.0f)
+    {
+        // O tempo diminui conforme mais HDs são queimados (mínimo de 10s)
+        spawnNewEnemyTimer = 45.0f - (componentesQueimados * 3.0f);
+        if (spawnNewEnemyTimer < 10.0f) spawnNewEnemyTimer = 10.0f;
+
+        float spawnX = 0;
+        float spawnZ = 0;
+        bool found = false;
+
+        // Tenta achar um local válido no mapa que não esteja muito perto do jogador
+        for (int tries = 0; tries < 50; tries++)
+        {
+            if (lvl.map.data().empty()) break;
+            
+            int rx = std::rand() % lvl.map.data()[0].size();
+            int rz = std::rand() % lvl.map.data().size();
+
+            float wx, wz;
+            lvl.metrics.tileCenter(rx, rz, wx, wz);
+            if (isWalkable(wx, wz))
+            {
+                float dx = wx - camX;
+                float dz = wz - camZ;
+                if (std::sqrt(dx * dx + dz * dz) > 10.0f) // Mais de 10 blocos de distância
+                {
+                    spawnX = wx;
+                    spawnZ = wz;
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        static int enemiesSpawnedThisPhase = 0;
+        if (found)
+        {
+            Enemy newEn;
+            if (faseAtual == 1) newEn.type = 2;
+            else if (faseAtual == 2) newEn.type = 1;
+            else newEn.type = 0;
+
+            newEn.x = spawnX;
+            newEn.z = spawnZ;
+            newEn.startX = spawnX;
+            newEn.startZ = spawnZ;
+            newEn.hp = 100.0f;
+            newEn.state = STATE_CHASE;
+            newEn.attackCooldown = 0.0f;
+            newEn.hurtTimer = 0.0f;
+            newEn.respawnTimer = 0.0f;
+            
+            lvl.enemies.push_back(newEn);
+            printf("\n>>> NOVO INIMIGO SPAWNOU! A tensao aumenta...\n");
+
+            enemiesSpawnedThisPhase++;
+            if (enemiesSpawnedThisPhase >= 2)
+            {
+                enemiesSpawnedThisPhase = 0;
+                
+                // Procurar local aleatório para a caixa de munição
+                float ammoSpawnX = spawnX;
+                float ammoSpawnZ = spawnZ;
+                
+                for (int tries = 0; tries < 50; tries++)
+                {
+                    if (lvl.map.data().empty()) break;
+                    
+                    int rx = std::rand() % lvl.map.data()[0].size();
+                    int rz = std::rand() % lvl.map.data().size();
+
+                    float wx, wz;
+                    lvl.metrics.tileCenter(rx, rz, wx, wz);
+                    if (isWalkable(wx, wz))
+                    {
+                        ammoSpawnX = wx;
+                        ammoSpawnZ = wz;
+                        break;
+                    }
+                }
+
+                Item ammoDrop;
+                ammoDrop.type = ITEM_AMMO;
+                ammoDrop.x = ammoSpawnX;
+                ammoDrop.z = ammoSpawnZ;
+                ammoDrop.active = true;
+                ammoDrop.respawnTimer = 0.0f;
+                lvl.items.push_back(ammoDrop);
+
+                g.player.showAmmoDropWarning = true;
+                g.player.ammoDropWarningTimer = 3.0f; // Exibe o aviso por 3 segundos
+
+                printf("\n>>> MUNICÃO SURGIU EM UM LOCAL ALEATÓRIO DO MAPA!\n");
+            }
+        }
+    }
+
+    // --- LÓGICA DE COLETA DE ITENS ---
+    for (auto& item : lvl.items)
+    {
+        if (!item.active) continue;
+        
+        float dx = camX - item.x;
+        float dz = camZ - item.z;
+        float dist = std::sqrt(dx * dx + dz * dz);
+        
+        if (dist < 1.0f) 
+        {
+            if (item.type == ITEM_AMMO)
+            {
+                g.player.reserveAmmo += 12; // Dá 12 tiros reservas
+                item.active = false;
+                printf("\n>>> MUNICÃO COLETADA! (+12 tiros)\n");
+            }
+        }
+    }
+
     // Apenas passamos pelas entidades (Bosses e HDs)
     for (auto& en : lvl.enemies)
     {
-        if (en.state == STATE_DEAD) continue;
+        // --- LÓGICA DE RESPAWN PARA INIMIGOS MORTOS ---
+        if (en.state == STATE_DEAD) 
+        {
+            // Apenas inimigos (0, 1, 2) dão respawn, HDs (4) não!
+            if (en.type == 0 || en.type == 1 || en.type == 2)
+            {
+                if (en.respawnTimer > 0.0f)
+                {
+                    en.respawnTimer -= dt;
+                    if (en.respawnTimer <= 0.0f)
+                    {
+                        en.state = STATE_CHASE;
+                        en.hp = 100.0f; // Recupera vida
+                        en.x = en.startX;
+                        en.z = en.startZ;
+                        printf("\n>>> UM INIMIGO RENASCEU!\n");
+                    }
+                }
+            }
+            continue;
+        }
 
         if (en.hurtTimer > 0.0f) en.hurtTimer -= dt;
 

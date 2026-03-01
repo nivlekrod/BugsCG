@@ -27,6 +27,18 @@ struct GameAssets
     GLuint texEnemiesRage[5]   = {0, 0, 0, 0, 0};
     GLuint texEnemiesDamage[5] = {0, 0, 0, 0, 0};
 
+    // VARIÁVEIS A ADICIONAR PARA A ARMA:
+    GLuint texGunDefault = 0;
+    GLuint texGunFire1 = 0;
+    GLuint texGunFire2 = 0;
+    GLuint texGunReload1 = 0;
+    GLuint texGunReload2 = 0;
+    GLuint texItemAmmo = 0;
+
+    // VARIÁVEIS PARA A BARRA INFERIOR (HUD TIPO DOOM)
+    GLuint texGunHUD = 0;   // Ícone da arma na barra
+    GLuint texHudFundo = 0; // Fundo da barra
+
     // --- Shaders ---
     GLuint progSangue = 0;
     GLuint progLava = 0;

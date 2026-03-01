@@ -9,6 +9,9 @@ struct Level
     MapLoader map;
     LevelMetrics metrics;
     std::vector<Enemy> enemies;
+
+    // ADICIONE ESTA LINHA:
+    std::vector<Item> items;
 };
 bool loadLevel(Level &lvl, const char *mapPath, float tileSize);
 void applySpawn(const Level &lvl, float &camX, float &camZ);

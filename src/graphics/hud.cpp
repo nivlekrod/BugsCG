@@ -30,13 +30,213 @@ static void end2D()
     glMatrixMode(GL_MODELVIEW);
 }
 
-static void drawDamageOverlay(int w, int h, GLuint texDamage, float alpha)
+static void drawCrosshair(int w, int h)
 {
-    if (alpha <= 0.0f || texDamage == 0)
-        return;
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
 
     begin2D(w, h);
 
+    glColor3f(0.0f, 1.0f, 0.0f);
+    glLineWidth(2.0f);
+
+    float cx = w / 2.0f;
+    float cy = h / 2.0f;
+    float size = 10.0f;
+
+    glBegin(GL_LINES);
+    glVertex2f(cx - size, cy); glVertex2f(cx + size, cy);
+    glVertex2f(cx, cy - size); glVertex2f(cx, cy + size);
+    glEnd();
+
+    end2D();
+
+    glPopAttrib();
+}
+
+static void drawWeaponHUD(int w, int h, const HudTextures& tex, WeaponState ws)
+{
+    GLuint currentTex = tex.texGunDefault;
+
+    if (ws == WeaponState::W_FIRE_1 || ws == WeaponState::W_RETURN) currentTex = tex.texGunFire1;
+    else if (ws == WeaponState::W_FIRE_2) currentTex = tex.texGunFire2;
+    else if (ws == WeaponState::W_RELOAD_1 || ws == WeaponState::W_RELOAD_3) currentTex = tex.texGunReload1;
+    else if (ws == WeaponState::W_RELOAD_2) currentTex = tex.texGunReload2;
+
+    if (currentTex == 0) return;
+
+    begin2D(w, h);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glBindTexture(GL_TEXTURE_2D, currentTex);
+    glColor4f(1, 1, 1, 1);
+
+    float gunH = h * 0.5f;
+    float gunW = gunH;
+    float x = (w - gunW) / 2.0f;
+    float y = 0.0f;
+
+    if (ws != WeaponState::W_IDLE)
+    {
+        y -= 20.0f;
+        x += (float)(std::rand() % 10 - 5);
+    }
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 1); glVertex2f(x, y);
+    glTexCoord2f(1, 1); glVertex2f(x + gunW, y);
+    glTexCoord2f(1, 0); glVertex2f(x + gunW, y + gunH);
+    glTexCoord2f(0, 0); glVertex2f(x, y + gunH);
+    glEnd();
+
+    glDisable(GL_BLEND);
+    end2D();
+}
+
+static void drawDoomBar(int w, int h, const HudTextures& tex, const HudState& s)
+{
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_CULL_FACE);
+
+    begin2D(w, h);
+    float hBar = h * 0.10f;
+
+    if (tex.texHudFundo != 0) {
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, tex.texHudFundo);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        float repeticaoX = 6.0f;
+        float repeticaoY = 1.0f;
+
+        glColor3f(1, 1, 1);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0);                 glVertex2f(0, 0);
+        glTexCoord2f(repeticaoX, 0);         glVertex2f((float)w, 0);
+        glTexCoord2f(repeticaoX, repeticaoY);glVertex2f((float)w, hBar);
+        glTexCoord2f(0, repeticaoY);         glVertex2f(0, hBar);
+        glEnd();
+        glDisable(GL_TEXTURE_2D);
+    } else {
+        // Fundo preto semi-transparente para o HUD caso não tenha textura
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(0.05f, 0.05f, 0.05f, 0.90f);
+        glBegin(GL_QUADS);
+        glVertex2f(0, 0);
+        glVertex2f((float)w, 0);
+        glVertex2f((float)w, hBar);
+        glVertex2f(0, hBar);
+        glEnd();
+        glDisable(GL_BLEND);
+    }
+
+    glLineWidth(3.0f);
+    glColor3f(0.7f, 0.7f, 0.75f);
+    glBegin(GL_LINES); glVertex2f(0, hBar); glVertex2f((float)w, hBar); glEnd();
+
+    glColor3f(0.2f, 0.2f, 0.25f);
+    glBegin(GL_LINES); glVertex2f(w / 2.0f, 0); glVertex2f(w / 2.0f, hBar); glEnd();
+
+    float scaleLbl = 0.0018f * hBar;
+    float scaleNum = 0.0035f * hBar;
+    float colLbl[3] = {1.0f, 0.8f, 0.5f};
+    float colNum[3] = {0.8f, 0.0f, 0.0f};
+
+    float xTextHealth = w * 0.08f;
+    float yLblHealth = hBar * 0.35f;
+    glColor3fv(colLbl);
+    uiDrawStrokeText(xTextHealth, yLblHealth, "HEALTH", scaleLbl);
+
+    float barH = hBar * 0.5f;
+    float barY = (hBar - barH) / 2.0f;
+    float barX = xTextHealth + (w * 0.08f);
+    float barMaxW = (w * 0.45f) - barX;
+
+    glColor4f(0, 0, 0, 1);
+    glBegin(GL_QUADS);
+    glVertex2f(barX, barY); glVertex2f(barX + barMaxW, barY);
+    glVertex2f(barX + barMaxW, barY + barH); glVertex2f(barX, barY + barH);
+    glEnd();
+
+    float pct = (float)s.playerHealth / 100.0f;
+    if (pct < 0) pct = 0;
+    if (pct > 1) pct = 1;
+
+    if (pct > 0.6f) glColor3f(0.0f, 0.8f, 0.0f);
+    else if (pct > 0.3f) glColor3f(1.0f, 0.8f, 0.0f);
+    else glColor3f(0.8f, 0.0f, 0.0f);
+
+    glBegin(GL_QUADS);
+    glVertex2f(barX, barY);
+    glVertex2f(barX + (barMaxW * pct), barY);
+    glVertex2f(barX + (barMaxW * pct), barY + barH);
+    glVertex2f(barX, barY + barH);
+    glEnd();
+
+    if (tex.texGunHUD != 0)
+    {
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor3f(1, 1, 1);
+
+        float iconSize = hBar * 1.5f;
+        float iconY = (hBar - iconSize) / 2.0f + (hBar * 0.1f);
+
+        glBindTexture(GL_TEXTURE_2D, tex.texGunHUD);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        float weaponWidth = iconSize * 2.2f;
+        float xIconGun = (w * 0.75f) - (weaponWidth / 2.0f);
+
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 1); glVertex2f(xIconGun, iconY);
+        glTexCoord2f(1, 1); glVertex2f(xIconGun + weaponWidth, iconY);
+        glTexCoord2f(1, 0); glVertex2f(xIconGun + weaponWidth, iconY + iconSize);
+        glTexCoord2f(0, 0); glVertex2f(xIconGun, iconY + iconSize);
+        glEnd();
+
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+
+        float xAmmoBlock = xIconGun + weaponWidth + 10.0f;
+        float yNum = hBar * 0.50f;
+        float xNum = xAmmoBlock + 5.0f;
+
+        glColor3fv(colNum);
+        glPushMatrix();
+        glTranslatef(xNum, yNum, 0);
+        glScalef(scaleNum, scaleNum, 1);
+        {
+            std::string sAmmo = std::to_string(s.currentAmmo) + " / " + std::to_string(s.reserveAmmo);
+            for (char c : sAmmo) glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, c);
+        }
+        glPopMatrix();
+
+        glColor3fv(colLbl);
+        uiDrawStrokeText(xAmmoBlock, hBar * 0.20f, "AMMO", scaleLbl);
+    }
+
+    end2D();
+    glPopAttrib();
+}
+
+static void drawDamageOverlay(int w, int h, GLuint texDamage, float alpha)
+{
+    if (alpha <= 0.0f || texDamage == 0) return;
+
+    begin2D(w, h);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
@@ -54,17 +254,14 @@ static void drawDamageOverlay(int w, int h, GLuint texDamage, float alpha)
     glEnd();
 
     glDisable(GL_BLEND);
-
     end2D();
 }
 
 static void drawHealthOverlay(int w, int h, GLuint texHealth, float alpha)
 {
-    if (alpha <= 0.0f || texHealth == 0)
-        return;
+    if (alpha <= 0.0f || texHealth == 0) return;
 
     begin2D(w, h);
-
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
@@ -82,37 +279,30 @@ static void drawHealthOverlay(int w, int h, GLuint texHealth, float alpha)
     glEnd();
 
     glDisable(GL_BLEND);
-
     end2D();
 }
 
-// Coloquei a função AQUI EM CIMA para o hudRenderAll poder enxergar ela
 static void drawHDIcon(int w, int h, GLuint texHD, int carregados)
 {
-    // Só desenha se tiver carregando 1 HD e a textura existir
     if (carregados <= 0 || texHD == 0) return;
 
     begin2D(w, h);
-
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
     
-    // Permite transparência na imagem do HD
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_GREATER, 0.1f);
 
-    // Força o OpenGL a usar a textura correta
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texHD);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-    // --- CORREÇÃO DE POSIÇÃO ---
     float size = h * 0.15f; 
-    float x = (float)w - size - 240.0f; // Mais para a esquerda
-    float y = 230.0f;                   // Mais para cima
+    float x = (float)w - size - 240.0f;
+    float y = 230.0f;                   
 
     glBegin(GL_QUADS);
     glTexCoord2f(0, 1); glVertex2f(x, y);
@@ -128,22 +318,51 @@ static void drawHDIcon(int w, int h, GLuint texHD, int carregados)
     end2D();
 }
 
+static void drawAmmoWarning(int w, int h)
+{
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+
+    begin2D(w, h);
+
+    std::string texto = "CAIXA DE MUNICÃO DROPADA!";
+
+    float scale = 0.00035f * h; 
+    float textWidth = texto.length() * 104.76f * scale; // Largura aproximada da fonte monospaced
+    float x = (w - textWidth) / 2.0f; // Centralizado na tela
+    float y = h * 0.7f; // Acima do centro
+
+    glColor3f(1.0f, 1.0f, 0.0f); // Amarelo para chamar atenção
+
+    uiDrawStrokeText(x, y, (char*)texto.c_str(), scale);
+
+    end2D();
+    glPopAttrib();
+}
+
 void hudRenderAll(
     int screenW,
     int screenH,
     const HudTextures& tex,
     const HudState& state,
-    bool showCrosshair, // Mantido apenas por compatibilidade com as chamadas no game.cpp
-    bool showWeapon,    // Mantido apenas por compatibilidade
-    bool showDoomBar,   // Mantido apenas por compatibilidade
+    bool showCrosshair, 
+    bool showWeapon,    
+    bool showDoomBar,   
     int queimados)
 {
-    // Apenas desenha o contador de HDs e os efeitos visuais (dano/cura)
+    // Restaura os visuais FPS originais
+    if (showWeapon)  drawWeaponHUD(screenW, screenH, tex, state.weaponState);
+    if (showDoomBar) drawDoomBar(screenW, screenH, tex, state);
+    if (showCrosshair) drawCrosshair(screenW, screenH);
+
+    if (state.showAmmoDropWarning) drawAmmoWarning(screenW, screenH);
+
+    // Mantém as mecânicas específicas da sua versão GameCG
     drawDevourCounter(screenW, screenH, queimados);
     drawDamageOverlay(screenW, screenH, tex.texDamage, state.damageAlpha);
     drawHealthOverlay(screenW, screenH, tex.texHealthOverlay, state.healthAlpha);
-    
-    // AQUI ESTAVA O ERRO! Faltou chamar a função pra desenhar o ícone!
     drawHDIcon(screenW, screenH, tex.texHD, state.componentesCarregados);
 }
 
@@ -159,14 +378,10 @@ void drawDevourCounter(int w, int h, int queimados)
     int restantes = 10 - queimados;
     std::string texto = "HDs CORROMPIDOS RESTANTES: " + std::to_string(restantes);
 
-    // Escala do texto
     float scale = 0.00025f * h; 
-
-    // Posição: Superior Direito (puxado 900px pra esquerda pra não cortar)
     float x = (float)w - 900.0f; 
     float y = (float)h - 50.0f;
 
-    // Fica vermelho quando só falta 1!
     if (restantes <= 1) glColor3f(1.0f, 0.0f, 0.0f);
     else glColor3f(1.0f, 1.0f, 1.0f);
 

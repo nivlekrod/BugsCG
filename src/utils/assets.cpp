@@ -42,7 +42,7 @@ bool loadAssets(GameAssets &a)
     a.texEnemies[3] = carregaTextura("assets/enemies/enemy4.png");
     a.texEnemiesRage[3] = carregaTextura("assets/enemies/enemyRage4.png");
     a.texEnemiesDamage[3] = carregaTextura("assets/enemies/enemyRageDamage4.png");
-    
+
     // --- COLETÁVEL: HD ('H') ---
     a.texEnemies[4] = carregaTextura("assets/hd.png");
     a.texEnemiesRage[4] = a.texEnemies[4];   // HD não tem raiva
@@ -51,6 +51,16 @@ bool loadAssets(GameAssets &a)
     // --- OVERLAYS DE TELA (Efeitos) ---
     a.texHealthOverlay = carregaTextura("assets/heal.png");
     a.texDamage = carregaTextura("assets/damage.png");
+
+    // Substitua "hudTex" pelo nome da variável que o seu código usa para os Assets (ex: assets.hudTex)
+    a.texGunDefault = carregaTextura("assets/gun_default.png");
+    a.texGunFire1 = carregaTextura("assets/gun_fire1.png");
+    a.texGunFire2 = carregaTextura("assets/gun_fire2.png");
+    a.texGunReload1 = carregaTextura("assets/gun_reload1.png");
+    a.texGunReload2 = carregaTextura("assets/gun_reload2.png");
+    a.texGunHUD = carregaTextura("assets/Shotgun.png");
+    a.texItemAmmo = carregaTextura("assets/066.png"); // Textura de caixa de madeira
+
 
     // --- VERIFICAÇÃO DE ERROS ---
     // (Removidos os checks de armas e itens de chão que não usamos mais)
@@ -63,6 +73,6 @@ bool loadAssets(GameAssets &a)
         std::printf("ERRO: falha ao carregar algum asset (textura/shader).\n");
         return false;
     }
-    
+
     return true;
 }

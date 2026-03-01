@@ -35,3 +35,21 @@ struct Enemy
     float attackCooldown; 
     float hurtTimer;      
 };
+
+// ADICIONE ESTES BLOCOS:
+enum ItemType
+{
+    ITEM_HEALTH,
+    ITEM_AMMO,
+    ITEM_AMMO_BOX,
+    ITEM_HD  // Caso você use HDs no chão no seu jogo
+};
+
+struct Item
+{
+    float x, z;
+    ItemType type;
+    bool active; // Se false, já foi pego
+
+    float respawnTimer;
+};

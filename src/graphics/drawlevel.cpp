@@ -541,7 +541,7 @@ static void drawSprite(float x, float z, float w, float h, GLuint tex, float cam
 }
 
 // Desenha inimigos e itens
-void drawEntities(const std::vector<Enemy> &enemies, float camX, float camZ, float dx, float dz, const RenderAssets &r)
+void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &items, float camX, float camZ, float dx, float dz, const RenderAssets &r)
 {
     // AQUI ESTAVA O BUG: Removi o glDisable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
@@ -591,6 +591,71 @@ void drawEntities(const std::vector<Enemy> &enemies, float camX, float camZ, flo
         // --- Segurança para o shader ler a textura certa ---
         glActiveTexture(GL_TEXTURE0); 
         drawSprite(en.x, en.z, spriteW, spriteH, currentTex, camX, camZ);
+    }
+
+    // --- ITENS (MUNIÇÃO) ---
+    for (const auto &item : items)
+    {
+        if (!item.active)
+            continue;
+
+        if (!isVisibleXZ(item.x, item.z, camX, camZ, hasFwd, fwdx, fwdz))
+            continue;
+
+        if (item.type == ITEM_AMMO && r.texItemAmmo != 0)
+        {
+            // Desenha um pequeno cubo 3D (caixa) em vez de um sprite
+            glEnable(GL_TEXTURE_2D);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, r.texItemAmmo);
+            glColor3f(1.0f, 1.0f, 1.0f);
+
+            glPushMatrix();
+            glTranslatef(item.x, 0.25f, item.z); // Eleva um pouco para não ficar enterrado no chão
+            
+            float size = 0.25f; // Metade do lado da caixa
+
+            glBegin(GL_QUADS);
+            // Frente
+            glNormal3f(0.0f, 0.0f, 1.0f);
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, -size, size);
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(size, -size, size);
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(size, size, size);
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, size);
+            // Tras
+            glNormal3f(0.0f, 0.0f, -1.0f);
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, -size);
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, size, -size);
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(size, size, -size);
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(size, -size, -size);
+            // Topo
+            glNormal3f(0.0f, 1.0f, 0.0f);
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, -size);
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, size, size);
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(size, size, size);
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(size, size, -size);
+            // Base
+            glNormal3f(0.0f, -1.0f, 0.0f);
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, -size, -size);
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(size, -size, -size);
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(size, -size, size);
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, size);
+            // Direita
+            glNormal3f(1.0f, 0.0f, 0.0f);
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(size, -size, -size);
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(size, size, -size);
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(size, size, size);
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(size, -size, size);
+            // Esquerda
+            glNormal3f(-1.0f, 0.0f, 0.0f);
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, -size, -size);
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, size);
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, size, size);
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, -size);
+            glEnd();
+
+            glPopMatrix();
+        }
     }
 
     // Desliga o shader e restaura estados no final

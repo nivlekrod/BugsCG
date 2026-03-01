@@ -12,6 +12,7 @@
 #include "core/camera.h" // Necessário para saber a posição do jogador
 #include "level/level.h" // Necessário para ler o mapa
 #include "core/config.h"
+#include "core/player.h"
 
 // --- VARIÁVEIS EXTERNAS DO DEVOUR ---
 extern int componentesCarregados;
@@ -75,6 +76,12 @@ void keyboard(unsigned char key, int, int)
         case 'a': case 'A': keyA = true; break;
         case 'd': case 'D': keyD = true; break;
             
+        // --- RECARREGAR ---
+        case 'r':
+        case 'R':
+            playerTryReload();
+            break;
+
         // --- LANTERNA ---
         case 'f':
         case 'F':
@@ -138,6 +145,8 @@ void keyboard(unsigned char key, int, int)
                 componentesQueimados = 0;
                 componentesCarregados = 0;
                 gameContext().player.health = 100; 
+                gameContext().player.currentAmmo = 12;
+                gameContext().player.reserveAmmo = 25;
                 
                 applySpawn(gameLevel(), camX, camZ); 
                 gameSetState(GameState::JOGANDO);
@@ -155,6 +164,8 @@ void keyboard(unsigned char key, int, int)
             componentesQueimados = 0;
             componentesCarregados = 0;
             gameContext().player.health = 100;
+            gameContext().player.currentAmmo = 12;
+            gameContext().player.reserveAmmo = 25;
 
             // Carrega o mapa 1 de volta para deixar o jogo pronto pra um novo "Play"
             if (loadLevel(gameLevel(), "maps/map1.txt", GameConfig::TILE_SIZE)) {
@@ -185,5 +196,8 @@ void keyboardUp(unsigned char key, int, int)
 
 void mouseClick(int button, int state, int x, int y)
 {
-    // Removido o ataque! Em jogos de terror a gente só corre.
+    if (gameGetState() != GameState::JOGANDO) return;
+    if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON) {
+        playerTryAttack();
+    }
 }

@@ -1,6 +1,8 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 #include "core/app.h"
 #include "core/window.h"
@@ -9,6 +11,9 @@
 
 int main(int argc, char** argv)
 {
+    // Semente para gerar posições aleatórias corretamente
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
