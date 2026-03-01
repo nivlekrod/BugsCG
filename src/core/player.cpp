@@ -100,7 +100,7 @@ void playerTryAttack()
     for (int i = 0; i < (int)lvl.enemies.size(); ++i)
     {
         auto &en = lvl.enemies[i];
-        if (en.state == STATE_DEAD) continue;
+        if (en.state == STATE_DEAD || en.type == 4) continue;
 
         float tHit = 0.0f;
         if (rayCircleIntersectXZ(camX, camZ, dirX, dirZ, en.x, en.z, HIT_RADIUS, tHit))

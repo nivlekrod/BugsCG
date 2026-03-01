@@ -184,11 +184,11 @@ void audioInit(AudioSystem& a, const Level& level) {
 
     a.bufKill = a.engine.loadWav("assets/audio/kill_mono.wav");
     
-    // Coleta de HD (2D one-shot) - Barulho pesado (passo com pitch grave)
-    a.bufCollectHD = a.engine.loadWav("assets/audio/step_mono.wav");
+    // Coleta de HD (2D one-shot)
+    a.bufCollectHD = a.engine.loadWav("assets/audio/collect_hd_mono.wav");
 
-    // Queima de HD (2D one-shot) - Barulho de estalo seco e rápido
-    a.bufBurnHD = a.engine.loadWav("assets/audio/shot_mono.wav");
+    // Queima de HD (2D one-shot) - Fogo/estalo
+    a.bufBurnHD = a.engine.loadWav("assets/audio/fire.wav");
 
     a.bufEnemyScream = a.engine.loadWav("assets/audio/enemy_scream_mono.wav");
 
@@ -264,8 +264,12 @@ void audioInit(AudioSystem& a, const Level& level) {
         if (a.srcCollectHD) {
             alSourcei(a.srcCollectHD, AL_SOURCE_RELATIVE, AL_TRUE);
             alSource3f(a.srcCollectHD, AL_POSITION, 0, 0, 0);
-            a.engine.setSourceGain(a.srcCollectHD, AudioTuning::MASTER * 2.0f); // Volume alto
-            a.engine.setSourcePitch(a.srcCollectHD, 0.4f); // Pitch baixo = som pesado
+
+            // Permite que o som passe do limite padrão de 1.0 no OpenAL
+            alSourcef(a.srcCollectHD, AL_MAX_GAIN, 5.0f); 
+
+            a.engine.setSourceGain(a.srcCollectHD, AudioTuning::MASTER * 3.5f); // Volume muito alto
+            a.engine.setSourcePitch(a.srcCollectHD, 1.0f); // Pitch normal
         }
     }
 
@@ -275,8 +279,8 @@ void audioInit(AudioSystem& a, const Level& level) {
         if (a.srcBurnHD) {
             alSourcei(a.srcBurnHD, AL_SOURCE_RELATIVE, AL_TRUE);
             alSource3f(a.srcBurnHD, AL_POSITION, 0, 0, 0);
-            a.engine.setSourceGain(a.srcBurnHD, AudioTuning::MASTER * 1.5f); 
-            a.engine.setSourcePitch(a.srcBurnHD, 4.0f); // Pitch extremamente alto transforma o tiro em um estalo seco
+            a.engine.setSourceGain(a.srcBurnHD, AudioTuning::MASTER * 2.0f); 
+            a.engine.setSourcePitch(a.srcBurnHD, 1.0f); // Pitch normal
         }
     }
     
@@ -377,7 +381,7 @@ void audioUpdate(
         if (!s) continue;
 
         const auto& en = level.enemies[i];
-        if (en.state == STATE_DEAD) {
+        if (en.state == STATE_DEAD || en.type == 4) {
             a.engine.stop(s);
             continue;
         }
@@ -405,7 +409,7 @@ void audioUpdate(
     // kill detect
     for (size_t i = 0; i < level.enemies.size(); ++i) {
         const auto& en = level.enemies[i];
-        if (a.enemyPrevState[i] != STATE_DEAD && en.state == STATE_DEAD) {
+        if (en.type != 4 && a.enemyPrevState[i] != STATE_DEAD && en.state == STATE_DEAD) {
             audioPlayKillAt(a, en.x, en.z);
         }
         a.enemyPrevState[i] = (int)en.state;
@@ -415,7 +419,7 @@ void audioUpdate(
     if (a.bufEnemyScream && !a.srcEnemyScreams.empty()) {
         for (size_t i = 0; i < level.enemies.size() && i < a.srcEnemyScreams.size(); ++i) {
             const auto& en = level.enemies[i];
-            if (en.state == STATE_DEAD) continue;
+            if (en.state == STATE_DEAD || en.type == 4) continue;
 
             // distância para audibilidade
             float dxs = en.x - listener.pos.x;

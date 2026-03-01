@@ -243,6 +243,7 @@ void updateEntities(float dt)
             {
                 en.state = STATE_DEAD; // O HD some do mapa
                 componentesCarregados = 1;
+                audioPlayCollectHD(audio);
                 printf("\n>>> HD RECOLHIDO! Corra para o Altar (Bloco 9)!\n");
             }
         }
