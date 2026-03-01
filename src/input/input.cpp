@@ -117,6 +117,7 @@ void keyboard(unsigned char key, int, int)
                 if (pertoDoIncinerador) {
                     componentesCarregados = 0;
                     componentesQueimados++;
+                    audioPlayBurnHD(gameAudio());
                     printf("\n>>> SUCESSO! Peça destruida! Total: %d/10\n", componentesQueimados);
                 } else {
                     printf("\n>>> ERRO: Voce nao esta no Incinerador (Bloco 9)!\n");

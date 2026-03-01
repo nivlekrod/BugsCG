@@ -183,6 +183,12 @@ void audioInit(AudioSystem& a, const Level& level) {
     a.bufClickReload = a.engine.loadWav("assets/audio/click_reload_mono.wav");
 
     a.bufKill = a.engine.loadWav("assets/audio/kill_mono.wav");
+    
+    // Coleta de HD (2D one-shot) - Barulho pesado (passo com pitch grave)
+    a.bufCollectHD = a.engine.loadWav("assets/audio/step_mono.wav");
+
+    // Queima de HD (2D one-shot) - Barulho de estalo seco e rápido
+    a.bufBurnHD = a.engine.loadWav("assets/audio/shot_mono.wav");
 
     a.bufEnemyScream = a.engine.loadWav("assets/audio/enemy_scream_mono.wav");
 
@@ -249,6 +255,28 @@ void audioInit(AudioSystem& a, const Level& level) {
                 AudioTuning::ENEMY_ROLLOFF,
                 AudioTuning::ENEMY_MAX_DIST
             );
+        }
+    }
+    
+    // Coleta de HD (2D one-shot)
+    if (a.bufCollectHD) {
+        a.srcCollectHD = a.engine.createSource(a.bufCollectHD, false);
+        if (a.srcCollectHD) {
+            alSourcei(a.srcCollectHD, AL_SOURCE_RELATIVE, AL_TRUE);
+            alSource3f(a.srcCollectHD, AL_POSITION, 0, 0, 0);
+            a.engine.setSourceGain(a.srcCollectHD, AudioTuning::MASTER * 2.0f); // Volume alto
+            a.engine.setSourcePitch(a.srcCollectHD, 0.4f); // Pitch baixo = som pesado
+        }
+    }
+
+    // Queima de HD (2D one-shot)
+    if (a.bufBurnHD) {
+        a.srcBurnHD = a.engine.createSource(a.bufBurnHD, false);
+        if (a.srcBurnHD) {
+            alSourcei(a.srcBurnHD, AL_SOURCE_RELATIVE, AL_TRUE);
+            alSource3f(a.srcBurnHD, AL_POSITION, 0, 0, 0);
+            a.engine.setSourceGain(a.srcBurnHD, AudioTuning::MASTER * 1.5f); 
+            a.engine.setSourcePitch(a.srcBurnHD, 4.0f); // Pitch extremamente alto transforma o tiro em um estalo seco
         }
     }
 
@@ -478,6 +506,18 @@ void audioPlayHurt(AudioSystem& a) {
 
 void audioPlayKillAt(AudioSystem& a, float x, float z) {
     play3DAt(a, a.srcKill, x, z);
+}
+
+void audioPlayCollectHD(AudioSystem& a) {
+    if (!a.ok || a.srcCollectHD == 0) return;
+    a.engine.stop(a.srcCollectHD);
+    a.engine.play(a.srcCollectHD);
+}
+
+void audioPlayBurnHD(AudioSystem& a) {
+    if (!a.ok || a.srcBurnHD == 0) return;
+    a.engine.stop(a.srcBurnHD);
+    a.engine.play(a.srcBurnHD);
 }
 
 void audioOnPlayerShot(AudioSystem& a) {
