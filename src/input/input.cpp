@@ -166,6 +166,7 @@ void keyboard(unsigned char key, int, int)
                 applySpawn(gameLevel(), camX, camZ); 
                 yaw = 180.0f;
                 applyPhaseTextures();
+                glutSetCursor(GLUT_CURSOR_NONE);
                 gameSetState(GameState::JOGANDO);
             } else {
                 gameSetState(GameState::MENU_INICIAL);

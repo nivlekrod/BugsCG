@@ -20,6 +20,7 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
     
     // Limpa entidades antigas se houver
     lvl.enemies.clear();
+    lvl.items.clear();
     lvl.totalHDs = 0;
 
     // 2. Escaneia o mapa procurando Bosses e o HD

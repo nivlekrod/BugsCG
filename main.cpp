@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     janelaH = monitorH;
 
     glutInitWindowSize(monitorW, monitorH);
-    glutCreateWindow("Agora isso e Devour");
+    glutCreateWindow("Bugs, o Ataque dos Insetos");
 
     // 3. Entra em modo FullScreen de verdade
     glutFullScreen(); 
