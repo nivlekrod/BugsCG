@@ -9,9 +9,12 @@
 #include "level/levelmetrics.h"
 #include "core/camera.h"
 #include "core/window.h"
+#include "graphics/altar.h"
 
 #include <GL/glew.h>
 #include <GL/glut.h>
+
+extern int faseAtual;
 
 static bool isWallTile(int tx, int tz)
 {
@@ -74,6 +77,14 @@ static bool canMoveTo(float nx, float nz)
             if (pointIntersectsTile(nx, nz, ntx, ntz, m, radius))
                 return false;
         }
+    }
+
+    // Colisão com altar (pirâmide + pilares) na fase 3
+    const Level &lvl = gameLevel();
+    if (faseAtual == 3 && lvl.hasLavaCenter)
+    {
+        if (altarBlocksMovement(lvl.lavaCenterX, lvl.lavaCenterZ, nx, nz, radius))
+            return false;
     }
 
     return true;

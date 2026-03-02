@@ -5,9 +5,12 @@
 #include "graphics/ShaderObj.h"
 #include "input/input.h"
 #include "graphics/drawlevel.h"
+#include "graphics/altar.h"
 #include "level/levelmetrics.h"
 #include "utils/utils.h"
 #include <cstdio>
+
+extern int faseAtual;
 
 // =====================
 // CONFIG / CONSTANTES
@@ -32,6 +35,7 @@ static LevelMetrics sMetrics;
 
 // Cached uniform locations
 static GLint locLampData[4] = {-1, -1, -1, -1};
+static GLint locAltarLights[4] = {-1, -1, -1, -1};
 static GLint locLavaCenter = -1;
 static GLint locLavaFlicker = -1;
 static GLint locIsSprite = -1;
@@ -45,6 +49,8 @@ static void initUniformLocs()
     for (int i = 0; i < 4; i++) {
         snprintf(name, sizeof(name), "uLampData[%d]", i);
         locLampData[i] = glGetUniformLocation(shaderLanterna->ID, name);
+        snprintf(name, sizeof(name), "uAltarLights[%d]", i);
+        locAltarLights[i] = glGetUniformLocation(shaderLanterna->ID, name);
     }
     locLavaCenter = glGetUniformLocation(shaderLanterna->ID, "uLavaCenter");
     locLavaFlicker = glGetUniformLocation(shaderLanterna->ID, "uLavaFlicker");
@@ -536,7 +542,28 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
         } else {
             glUniform1f(locLavaFlicker, 0.0f);
         }
+
+        // Iluminação dos losangos do altar (apenas fase 3)
+        if (faseAtual == 3 && lavaCount > 0) {
+            float pillarX[4], pillarZ[4];
+            getAltarPillarPositions(lavaCX, lavaCZ, pillarX, pillarZ);
+            float pulse = 1.6f + 0.3f * sinf(time * 3.5f);
+            for (int i = 0; i < 4; i++)
+                glUniform3f(locAltarLights[i], pillarX[i], pillarZ[i], pulse);
+        } else {
+            for (int i = 0; i < 4; i++)
+                glUniform3f(locAltarLights[i], 0.0f, 0.0f, 0.0f);
+        }
     }
+
+    // --- Detecta se o mapa é "ao ar livre" (sem tiles '3' ou 'F', ignorando o spawn do P) ---
+    int spawnTX = (int)map.getPlayerStartX();
+    int spawnTZ = (int)map.getPlayerStartZ();
+    bool outdoorMap = true;
+    for (int zz = 0; zz < H && outdoorMap; zz++)
+        for (int xx = 0; xx < (int)data[zz].size() && outdoorMap; xx++)
+            if ((xx != spawnTX || zz != spawnTZ) && (data[zz][xx] == '3' || data[zz][xx] == 'F'))
+                outdoorMap = false;
 
     for (int z = 0; z < H; z++)
     {
@@ -565,7 +592,8 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
                 char viz3 = getTileAt(map, x, z + 1);
                 char viz4 = getTileAt(map, x, z - 1);
 
-                bool isIndoor = (viz1 == '3' || viz1 == '2' || viz1 == 'F' ||
+                bool isIndoor = !outdoorMap &&
+                                (viz1 == '3' || viz1 == '2' || viz1 == 'F' ||
                                  viz2 == '3' || viz2 == '2' || viz2 == 'F' ||
                                  viz3 == '3' || viz3 == '2' || viz3 == 'F' ||
                                  viz4 == '3' || viz4 == '2' || viz4 == 'F');
@@ -587,9 +615,13 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
             }
             else if (c == '3')
             {
-                beginIndoor(wx, wz, time);
-                desenhaTileChao(wx, wz, r.texChaoInterno, true);
-                endIndoor();
+                if (!outdoorMap) {
+                    beginIndoor(wx, wz, time);
+                    desenhaTileChao(wx, wz, r.texChaoInterno, true);
+                    endIndoor();
+                } else {
+                    desenhaTileChao(wx, wz, r.texChao, false);
+                }
             }
             else if (c == '1')
             {
@@ -646,11 +678,13 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
             }
             else if (c == 'L')
             {
-                // Chão interno primeiro (fica visível onde lava é descartada pelo recorte circular)
-                beginIndoor(wx, wz, time);
-                desenhaTileChao(wx, wz, r.texChaoInterno, true);
-                endIndoor();
-                // Lava por cima (com discard circular no shader)
+                if (!outdoorMap) {
+                    beginIndoor(wx, wz, time);
+                    desenhaTileChao(wx, wz, r.texChaoInterno, true);
+                    endIndoor();
+                } else {
+                    desenhaTileChao(wx, wz, r.texChao, false);
+                }
                 desenhaTileLava(wx, wz, r, time);
             }
             else if (c == 'B')
@@ -659,9 +693,13 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
             }
             else if (c == '9')
             {
-                beginIndoor(wx, wz, time);
-                desenhaTileChao(wx, wz, r.texChaoInterno, true);
-                endIndoor();
+                if (!outdoorMap) {
+                    beginIndoor(wx, wz, time);
+                    desenhaTileChao(wx, wz, r.texChaoInterno, true);
+                    endIndoor();
+                } else {
+                    desenhaTileChao(wx, wz, r.texChao, false);
+                }
                 desenhaTileLava(wx, wz, r, time);
             }
         }

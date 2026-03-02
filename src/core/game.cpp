@@ -13,6 +13,7 @@
 #include "input/keystate.h"
 #include "graphics/drawlevel.h"
 #include "graphics/skybox.h"
+#include "graphics/altar.h"
 #include "graphics/hud.h"
 #include "graphics/menu.h"
 #include "graphics/lighting.h"
@@ -91,6 +92,8 @@ bool gameInit(const char *mapPath)
     gHudTex.texGunHUD = gAssets.texGunHUD;
     gHudTex.texHudFundo = gAssets.texHudFundo;
     g.r.texItemAmmo = gAssets.texItemAmmo;
+    g.r.texPilar = gAssets.texPilar;
+    g.r.texAltarChao = gAssets.texAltarChao;
 
     for (int i = 0; i < 5; i++)
     {
@@ -101,6 +104,7 @@ bool gameInit(const char *mapPath)
 
     g.r.progSangue = gAssets.progSangue;
     g.r.progLava = gAssets.progLava;
+    g.r.progFogo = gAssets.progFogo;
 
     if (!loadLevel(gLevel, mapPath, GameConfig::TILE_SIZE))
         return false;
@@ -130,6 +134,9 @@ bool gameInit(const char *mapPath)
     componentesQueimados = 0;
 
     applyPhaseTextures();
+
+    // Inicializa sistema de partículas de fogo (para losangos do altar - fase 3)
+    iniciaParticulasFogo(120); // 30 partículas por losango × 4 pilares
 
     return true;
 }
@@ -201,6 +208,9 @@ void applyPhaseTextures()
     g.r.texChaoInterno   = gAssets.texChaoInterno;
     g.r.texTeto          = gAssets.texTeto;
     g.r.texLightOn       = gAssets.texLightOn;
+    g.r.texSkydome       = gAssets.texSkydome;
+    g.r.texPilar         = gAssets.texPilar;
+    g.r.texAltarChao     = gAssets.texAltarChao;
 }
 
 void gameUpdate(float dt)
@@ -211,6 +221,10 @@ void gameUpdate(float dt)
         return;
 
     atualizaMovimento();
+
+    // Atualiza partículas de fogo do altar (fase 3)
+    if (faseAtual == 3)
+        atualizaParticulasFogo(dt);
 
     AudioListener L;
     L.pos = {camX, camY, camZ};
@@ -283,11 +297,21 @@ void drawWorld3D()
     float dirZ = -cosf(radPitch) * cosf(radYaw);
     gluLookAt(camX, camY, camZ, camX + dirX, camY + dirY, camZ + dirZ, 0.0f, 1.0f, 0.0f);
 
+    // Skydome (céu aberto) apenas na fase 3
+    if (faseAtual == 3)
+        drawSkydome(camX, camY, camZ, g.r);
+
     setSunDirectionEachFrame();
     drawLevel(gLevel.map, camX, camZ, dirX, dirZ, g.r, g.time);
 
     // CORRIGIDO: Agora chamamos com "gLevel.items"
     drawEntities(gLevel.enemies, gLevel.items, camX, camZ, dirX, dirZ, g.r, g.time);
+
+    // Altar 3D (4 pilares + losangos + pirâmide + esfera) apenas na fase 3
+    if (faseAtual == 3 && gLevel.hasLavaCenter)
+    {
+        drawAltar(gLevel.lavaCenterX, gLevel.lavaCenterZ, g.r, g.time);
+    }
 }
 
 void gameRender()

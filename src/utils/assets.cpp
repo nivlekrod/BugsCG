@@ -23,6 +23,7 @@ bool loadAssets(GameAssets &a)
 
     a.progSangue = criaShader("shaders/blood.vert", "shaders/blood.frag");
     a.progLava = criaShader("shaders/lava.vert", "shaders/lava.frag");
+    a.progFogo = criaShader("shaders/fire.vert", "shaders/fire.frag");
 
     // --- BOSS 1 ('J') - Júlio ---
     a.texEnemies[0] = carregaTextura("assets/enemies/enemy.png");
@@ -61,6 +62,8 @@ bool loadAssets(GameAssets &a)
     a.texGunReload2 = carregaTextura("assets/gun_reload2.png");
     a.texGunHUD = carregaTextura("assets/Shotgun.png");
     a.texItemAmmo = carregaTextura("assets/066.png"); // Textura de caixa de madeira
+    a.texPilar = carregaTextura("assets/565.png");     // Pilares do altar
+    a.texAltarChao = carregaTextura("assets/190.png"); // Piso do altar (degraus)
 
 
     // --- VERIFICAÇÃO DE ERROS ---
@@ -87,8 +90,19 @@ void reloadPhaseTextures(GameAssets &a, int fase)
         a.texChaoInterno   = carregaTextura("assets/backrooms-carpet-diffuse.png");
         a.texTeto          = carregaTextura("assets/backrooms-ceiling-tile-diffuse.png");
         a.texLightOn       = carregaTextura("assets/backrooms-ceiling-light-diffuse.png");
+        a.texSkydome       = carregaTextura("assets/Va4wUMQ.png");
         std::printf("[DEBUG] Backrooms textures: wall=%u floor=%u ceil=%u light=%u\n",
             a.texParedeInterna, a.texChaoInterno, a.texTeto, a.texLightOn);
+    }
+    else if (fase == 3)
+    {
+        a.texParedeInterna = carregaTextura("assets/060.png");
+        a.texChaoInterno   = carregaTextura("assets/100.png");
+        a.texTeto          = carregaTextura("assets/081.png");
+        a.texLightOn       = carregaTextura("assets/081_on.png");
+        a.texSkydome       = carregaTextura("assets/Y1m2NAI.png");
+        a.texPilar         = carregaTextura("assets/565.png");
+        a.texAltarChao     = carregaTextura("assets/190.png");
     }
     else
     {
@@ -96,5 +110,6 @@ void reloadPhaseTextures(GameAssets &a, int fase)
         a.texChaoInterno   = carregaTextura("assets/100.png");
         a.texTeto          = carregaTextura("assets/081.png");
         a.texLightOn       = carregaTextura("assets/081_on.png");
+        a.texSkydome       = carregaTextura("assets/Va4wUMQ.png");
     }
 }

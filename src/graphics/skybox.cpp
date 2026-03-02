@@ -18,13 +18,13 @@ static float vFromPhi(float phi, float phiMax, float vStart, float vHorizon)
 
 void drawSkydome(float camX, float camY, float camZ, const RenderAssets& r)
 {
-    const float R = 200.0f; // Raio do domo (Céu)
+    const float R = 100.0f; // Raio do domo (Céu)
     const int slices = 64;  // Resolução horizontal
     const int stacks = 24;  // Resolução vertical
     
     const float phiMax = 3.1415926535f;
     const float vStart = 0.00f;
-    const float vHorizon = 2.00f; 
+    const float vHorizon = 2.00f;
 
     glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
     glDisable(GL_LIGHTING);

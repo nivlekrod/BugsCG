@@ -35,6 +35,8 @@ struct GameAssets
     GLuint texGunReload1 = 0;
     GLuint texGunReload2 = 0;
     GLuint texItemAmmo = 0;
+    GLuint texPilar = 0;       // 565.png - pilares do altar
+    GLuint texAltarChao = 0;   // 190.png - piso do altar
 
     // VARIÁVEIS PARA A BARRA INFERIOR (HUD TIPO DOOM)
     GLuint texGunHUD = 0;   // Ícone da arma na barra
@@ -43,6 +45,7 @@ struct GameAssets
     // --- Shaders ---
     GLuint progSangue = 0;
     GLuint progLava = 0;
+    GLuint progFogo = 0;
 };
 
 bool loadAssets(GameAssets &a);

@@ -78,6 +78,17 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
     }
 
     lvl.originalEnemyCount = (int)lvl.enemies.size(); // Marca o limite: tudo além disso foi spawnado em jogo
+
+    // Localiza o centro da lava ('9') para o altar e colisão
+    lvl.hasLavaCenter = false;
+    for (int z = 0; z < H; z++)
+        for (int x = 0; x < (int)data[z].size(); x++)
+            if (data[z][x] == '9')
+            {
+                lvl.metrics.tileCenter(x, z, lvl.lavaCenterX, lvl.lavaCenterZ);
+                lvl.hasLavaCenter = true;
+            }
+
     return true;
 }
 

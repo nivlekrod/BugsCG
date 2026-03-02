@@ -1,0 +1,183 @@
+========================================= 
+ESTRUTURA DE PASTAS E ARQUIVOS 
+========================================= 
+Listagem de caminhos de pasta
+O n�mero de s�rie do volume � 7C10-DFDE
+C:\USERS\KELVIN\DOCUMENTS\DEV\DEVOURGAME\SRC
++---audio
+�       audio_engine.cpp
+�       audio_system.cpp
+�       teste.cpp
+�       
++---core
+�       app.cpp
+�       camera.cpp
+�       entities.cpp
+�       fps.cpp
+�       game.cpp
+�       movement.cpp
+�       player.cpp
+�       teste.cpp
+�       window.cpp
+�       
++---graphics
+�       drawlevel.cpp
+�       hud.cpp
+�       lighting.cpp
+�       menu.cpp
+�       shader.cpp
+�       ShaderObj.cpp
+�       skybox.cpp
+�       teste.cpp
+�       texture.cpp
+�       ui_text.cpp
+�       
++---input
+�       input.cpp
+�       keystate.cpp
+�       teste.cpp
+�       
++---level
+�       level.cpp
+�       levelmetrics.cpp
+�       maploader.cpp
+�       teste.cpp
+�       
++---utils
+        assets.cpp
+        teste.cpp
+        utils.cpp
+        
+Listagem de caminhos de pasta
+O n�mero de s�rie do volume � 7C10-DFDE
+C:\USERS\KELVIN\DOCUMENTS\DEV\DEVOURGAME\INCLUDE
++---audio
+�       audio_engine.h
+�       audio_system.h
+�       audio_tuning.h
+�       
++---core
+�       app.h
+�       camera.h
+�       config.h
+�       entities.h
+�       fps.h
+�       game.h
+�       game_enums.h
+�       game_state.h
+�       movement.h
+�       player.h
+�       weapon.h
+�       window.h
+�       
++---graphics
+�       drawlevel.h
+�       hud.h
+�       lighting.h
+�       menu.h
+�       shader.h
+�       ShaderObj.h
+�       skybox.h
+�       teste.h
+�       texture.h
+�       ui_text.h
+�       
++---input
+�       input.h
+�       keystate.h
+�       
++---level
+�       level.h
+�       levelmetrics.h
+�       maploader.h
+�       queries.h
+�       teste.h
+�       
++---utils
+        assets.h
+        stb_image.h
+        teste.h
+        utils.h
+        
+ 
+========================================= 
+CONTEUDO DOS ARQUIVOS 
+========================================= 
+ 
+--- ARQUIVO: main.cpp --- 
+#include <GL/glew.h>
+#include <GL/glut.h>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+
+#include "core/app.h"
+#include "core/window.h"
+#include "core/game.h"
+
+
+int main(int argc, char** argv)
+{
+    // Semente para gerar posições aleatórias corretamente
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+
+    // --- LOGICA DE TELA CHEIA ---
+    // 1. Pega a resolução do seu monitor
+    int monitorW = glutGet(GLUT_SCREEN_WIDTH);
+    int monitorH = glutGet(GLUT_SCREEN_HEIGHT);
+
+    // 2. Atualiza as variáveis globais que o HUD usa
+    janelaW = monitorW;
+    janelaH = monitorH;
+
+    glutInitWindowSize(monitorW, monitorH);
+    glutCreateWindow("Agora isso e Devour");
+
+    // 3. Entra em modo FullScreen de verdade
+    glutFullScreen(); 
+
+    GLenum err = glewInit();
+    if (err != GLEW_OK) return 1;
+
+    appInit();
+
+    if (!gameInit("maps/map1.txt")) return 1;
+
+
+
+    // Esconde o mouse para aumentar a imersão
+    glutSetCursor(GLUT_CURSOR_NONE);
+
+    glutMainLoop();
+    return 0;
+} 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 
+ 
+--- ARQUIVO: .cpp.h --- 

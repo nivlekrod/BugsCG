@@ -12,6 +12,7 @@ uniform float uLavaFlicker;      // 0 = sem lava, >0 = intensidade do flicker
 uniform vec3 uLampData[4];       // xy = posição mundo XZ, z = intensidade (0 = bloqueado/off)
 uniform int uIsSprite;           // 1 = sprite (usa uEntityWorldXZ), 0 = tile (usa WorldPos)
 uniform vec2 uEntityWorldXZ;    // posição XZ no mundo do sprite
+uniform vec3 uAltarLights[4];   // xy = posição mundo XZ dos losangos, z = intensidade (0 = off)
 
 void main() {
     vec4 texColor = texture2D(uTexture, TexCoord);
@@ -57,10 +58,20 @@ void main() {
         str *= str;
         lampContrib += vec3(0.8, 0.8, 0.85) * str * uLampData[i].z * 0.6;
     }
+
+    // Iluminacao dos losangos do altar (circular, verde incandescente - forte)
+    vec3 altarContrib = vec3(0.0);
+    for (int i = 0; i < 4; i++) {
+        if (uAltarLights[i].z <= 0.0) continue;
+        float adist = distance(worldXZ, uAltarLights[i].xy);
+        float astr = 1.0 - clamp(adist / 32.0, 0.0, 1.0);
+        astr *= astr;
+        altarContrib += vec3(0.25, 1.2, 0.18) * astr * uAltarLights[i].z;
+    }
     
     float fogFactor = clamp((Dist - 3.0) / 15.0, 0.0, 1.0);
     
-    vec3 finalColor = texColor.rgb * (ambient + diffuse + lavaContrib + lampContrib);
+    vec3 finalColor = texColor.rgb * (ambient + diffuse + lavaContrib + lampContrib + altarContrib);
     finalColor = mix(finalColor, vec3(0.0, 0.0, 0.0), fogFactor);
 
     gl_FragColor = vec4(finalColor, texColor.a);
