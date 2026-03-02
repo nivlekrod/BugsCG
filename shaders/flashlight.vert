@@ -5,6 +5,7 @@ varying vec2 TexCoord;
 varying vec3 FragPos; // Posição do pixel em relação à câmera
 varying vec3 Normal;
 varying float Dist;   // Distância pura para neblina
+varying vec3 WorldPos; // Posição no mundo (para iluminação circular)
 
 void main()
 {
@@ -19,6 +20,9 @@ void main()
     
     // Calcula distância para neblina (fog)
     Dist = length(viewPos.xyz);
+
+    // Posição no mundo para iluminação
+    WorldPos = gl_Vertex.xyz;
 
     // Posição final na tela
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;

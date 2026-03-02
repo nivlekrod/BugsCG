@@ -20,6 +20,76 @@ static const float WALL_H = 4.0f;    // altura da parede
 static const float EPS_Y = 0.001f;   // evita z-fighting
 static ShaderObj* shaderLanterna = nullptr;
 
+// Dados de iluminação compartilhados entre drawLevel e drawEntities
+static float sLavaCX = 0, sLavaCZ = 0;
+static int sLavaCount = 0;
+static const int MAX_LAMPS = 32;
+static float sLampPX[MAX_LAMPS], sLampPZ[MAX_LAMPS];
+static int sLampCount = 0;
+static float sTime = 0;
+static const MapLoader* sMapPtr = nullptr;
+static LevelMetrics sMetrics;
+
+// Cached uniform locations
+static GLint locLampData[4] = {-1, -1, -1, -1};
+static GLint locLavaCenter = -1;
+static GLint locLavaFlicker = -1;
+static GLint locIsSprite = -1;
+static GLint locEntityWorldXZ = -1;
+static bool sUniformsInit = false;
+
+static void initUniformLocs()
+{
+    if (sUniformsInit || !shaderLanterna) return;
+    char name[32];
+    for (int i = 0; i < 4; i++) {
+        snprintf(name, sizeof(name), "uLampData[%d]", i);
+        locLampData[i] = glGetUniformLocation(shaderLanterna->ID, name);
+    }
+    locLavaCenter = glGetUniformLocation(shaderLanterna->ID, "uLavaCenter");
+    locLavaFlicker = glGetUniformLocation(shaderLanterna->ID, "uLavaFlicker");
+    locIsSprite = glGetUniformLocation(shaderLanterna->ID, "uIsSprite");
+    locEntityWorldXZ = glGetUniformLocation(shaderLanterna->ID, "uEntityWorldXZ");
+    sUniformsInit = true;
+}
+
+// Verifica linha de visão entre dois pontos no grid (sem paredes bloqueando)
+static bool hasLineOfSight(float x1, float z1, float x2, float z2)
+{
+    if (!sMapPtr) return true;
+    const auto& data = sMapPtr->data();
+    int H = sMapPtr->getHeight();
+    float tile = sMetrics.tile;
+    float offX = sMetrics.offsetX;
+    float offZ = sMetrics.offsetZ;
+
+    int tx1 = (int)((x1 - offX) / tile);
+    int tz1 = (int)((z1 - offZ) / tile);
+    int tx2 = (int)((x2 - offX) / tile);
+    int tz2 = (int)((z2 - offZ) / tile);
+    int stx = tx1, stz = tz1;
+
+    int dx = tx2 > tx1 ? tx2 - tx1 : tx1 - tx2;
+    int dz = tz2 > tz1 ? tz2 - tz1 : tz1 - tz2;
+    int sx = tx1 < tx2 ? 1 : -1;
+    int sz = tz1 < tz2 ? 1 : -1;
+    int err = dx - dz;
+
+    while (true) {
+        if (!(tx1 == stx && tz1 == stz)) {
+            if (tz1 >= 0 && tz1 < H && tx1 >= 0 && tx1 < (int)data[tz1].size()) {
+                char c = data[tz1][tx1];
+                if (c == '1' || c == '2') return false;
+            }
+        }
+        if (tx1 == tx2 && tz1 == tz2) break;
+        int e2 = 2 * err;
+        if (e2 > -dz) { err -= dz; tx1 += sx; }
+        if (e2 < dx) { err += dx; tz1 += sz; }
+    }
+    return true;
+}
+
 static const GLfloat kAmbientOutdoor[] = {0.02f, 0.02f, 0.02f, 1.0f}; // Breu
 static const GLfloat kAmbientIndoor[] = {0.01f, 0.01f, 0.01f, 1.0f};  // Breu
 
@@ -101,6 +171,22 @@ static float flickerFluorescente(float t)
     }
 
     return 0.96f + 0.04f * sinf(t * 5.0f);
+}
+
+// Seta visibilidade das luminárias para uma posição (com LOS check)
+static void setLampVisForPos(float px, float pz, float time, const float* lpx, const float* lpz, int lc)
+{
+    if (!shaderLanterna) return;
+    shaderLanterna->use();
+    for (int li = 0; li < 4; li++) {
+        if (li < lc) {
+            float fl = flickerFluorescente(time + lpx[li] * 3.7f + lpz[li] * 2.3f);
+            bool vis = fl > 0.5f && hasLineOfSight(lpx[li], lpz[li], px, pz);
+            glUniform3f(locLampData[li], lpx[li], lpz[li], vis ? fl : 0.0f);
+        } else {
+            glUniform3f(locLampData[li], 0.0f, 0.0f, 0.0f);
+        }
+    }
 }
 
 static void setIndoorLampAt(float x, float z, float intensity)
@@ -312,17 +398,24 @@ static void desenhaTileLava(float x, float z, const RenderAssets &r, float time)
     GLint locScr = glGetUniformLocation(r.progLava, "uScroll");
     GLint locHeat = glGetUniformLocation(r.progLava, "uHeat");
     GLint locTex = glGetUniformLocation(r.progLava, "uTexture");
+    GLint locCenter = glGetUniformLocation(r.progLava, "uLavaCenterPos");
+    GLint locRadius = glGetUniformLocation(r.progLava, "uLavaRadius");
 
     glUniform1f(locTime, time);
     glUniform1f(locStr, 1.0f);
     glUniform2f(locScr, 0.1f, 0.0f);
     glUniform1f(locHeat, 0.6f);
+    glUniform2f(locCenter, sLavaCX, sLavaCZ);
+    glUniform1f(locRadius, TILE * 1.4f);
 
     bindTexture0(r.texLava);
     glUniform1i(locTex, 0);
 
     glColor3f(1, 1, 1);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(-1.0f, -1.0f);
     desenhaQuadChao(x, z, TILE, 2.0f);
+    glDisable(GL_POLYGON_OFFSET_FILL);
 
     glUseProgram(0);
 }
@@ -393,9 +486,57 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
     const int H = map.getHeight();
 
     LevelMetrics m = LevelMetrics::fromMap(map, TILE);
+    sMapPtr = &map;
+    sMetrics = m;
 
     float fwdx, fwdz;
     bool hasFwd = getForwardXZ(dx, dz, fwdx, fwdz);
+
+    // --- Lava glow: computar centro da lava para iluminação via shader ---
+    float lavaCX = 0, lavaCZ = 0;
+    int lavaCount = 0;
+    // --- Lamp positions: coletar para iluminação omnidirecional ---
+    float lampPX[MAX_LAMPS], lampPZ[MAX_LAMPS];
+    int lampCount = 0;
+    for (int zz = 0; zz < H; zz++) {
+        for (int xx = 0; xx < (int)data[zz].size(); xx++) {
+            char cc = data[zz][xx];
+            if (cc == 'L' || cc == '9') {
+                float lwx, lwz;
+                m.tileCenter(xx, zz, lwx, lwz);
+                lavaCX += lwx;
+                lavaCZ += lwz;
+                lavaCount++;
+            }
+            if (cc == 'F' && lampCount < MAX_LAMPS) {
+                m.tileCenter(xx, zz, lampPX[lampCount], lampPZ[lampCount]);
+                lampCount++;
+            }
+        }
+    }
+    if (lavaCount > 0) {
+        lavaCX /= lavaCount;
+        lavaCZ /= lavaCount;
+    }
+    // Armazena para uso em drawEntities
+    sLavaCX = lavaCX; sLavaCZ = lavaCZ; sLavaCount = lavaCount;
+    for (int i = 0; i < lampCount; i++) { sLampPX[i] = lampPX[i]; sLampPZ[i] = lampPZ[i]; }
+    sLampCount = lampCount;
+    sTime = time;
+
+    // Uniforms de lava e lâmpadas (set once per frame)
+    initUniformLocs();
+    if (shaderLanterna) {
+        shaderLanterna->use();
+        glUniform1i(locIsSprite, 0); // tiles usam WorldPos
+        if (lavaCount > 0) {
+            glUniform2f(locLavaCenter, lavaCX, lavaCZ);
+            float lFlk = 0.9f + 0.1f * sinf(time * 3.0f);
+            glUniform1f(locLavaFlicker, lFlk);
+        } else {
+            glUniform1f(locLavaFlicker, 0.0f);
+        }
+    }
 
     for (int z = 0; z < H; z++)
     {
@@ -410,9 +551,12 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
 
             char c = data[z][x];
 
+            // Per-tile: set lamp visibility (LOS check)
+            setLampVisForPos(wx, wz, time, lampPX, lampPZ, lampCount);
+
             bool isEntity = (c == 'J' || c == 'T' || c == 'M' || c == 'K' ||
                              c == 'G' || c == 'H' || c == 'A' || c == 'E' ||
-                             c == 'F' || c == 'I');
+                             c == 'I');
 
             if (isEntity)
             {
@@ -421,10 +565,10 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
                 char viz3 = getTileAt(map, x, z + 1);
                 char viz4 = getTileAt(map, x, z - 1);
 
-                bool isIndoor = (viz1 == '3' || viz1 == '2' ||
-                                 viz2 == '3' || viz2 == '2' ||
-                                 viz3 == '3' || viz3 == '2' ||
-                                 viz4 == '3' || viz4 == '2');
+                bool isIndoor = (viz1 == '3' || viz1 == '2' || viz1 == 'F' ||
+                                 viz2 == '3' || viz2 == '2' || viz2 == 'F' ||
+                                 viz3 == '3' || viz3 == '2' || viz3 == 'F' ||
+                                 viz4 == '3' || viz4 == '2' || viz4 == 'F');
 
                 if (isIndoor)
                 {
@@ -453,30 +597,29 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
             }
             else if (c == '2')
             {
-                char vizFrente = getTileAt(map, x, z + 1);
-                char vizTras = getTileAt(map, x, z - 1);
-                char vizDireita = getTileAt(map, x + 1, z);
-                char vizEsq = getTileAt(map, x - 1, z);
+                int nbs[4][2] = {{x, z+1}, {x, z-1}, {x+1, z}, {x-1, z}};
+                char vizChars[4];
+                vizChars[0] = getTileAt(map, x, z + 1);
+                vizChars[1] = getTileAt(map, x, z - 1);
+                vizChars[2] = getTileAt(map, x + 1, z);
+                vizChars[3] = getTileAt(map, x - 1, z);
 
-                drawFace(wx, wz, 0, vizFrente, r.texParedeInterna, time);
-                drawFace(wx, wz, 1, vizTras, r.texParedeInterna, time);
-                drawFace(wx, wz, 2, vizDireita, r.texParedeInterna, time);
-                drawFace(wx, wz, 3, vizEsq, r.texParedeInterna, time);
+                for (int fi = 0; fi < 4; fi++) {
+                    if (vizChars[fi] == '2') continue;
+                    float nwx, nwz;
+                    m.tileCenter(nbs[fi][0], nbs[fi][1], nwx, nwz);
+                    setLampVisForPos(nwx, nwz, time, lampPX, lampPZ, lampCount);
+                    drawFace(wx, wz, fi, vizChars[fi], r.texParedeInterna, time);
+                }
             }
-            else if (c == 'L')
+            else if (c == 'F')
             {
-                desenhaTileLava(wx, wz, r, time);
-            }
-            else if (c == 'B')
-            {
-                desenhaTileSangue(wx, wz, r, time);
-            }
-            else if (c == '9')
-            {
-                // 1. Desenha o chão de Lava animado (que já existe no seu motor)
-                desenhaTileLava(wx, wz, r, time);
+                // Luminária piscando no teto (tile, não entidade)
+                float f = flickerFluorescente(time + wx * 3.7f + wz * 2.3f);
 
-                // 2. Prepara o shader da lanterna para desenhar o teto corretamente
+                desenhaTileChao(wx, wz, r.texChaoInterno, true);
+
+                // Sprite da luminária no teto (081_on quando acesa, 081 quando apagada)
                 if (shaderLanterna) {
                     shaderLanterna->use();
                     shaderLanterna->setInt("uTexture", 0);
@@ -485,15 +628,41 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
                     glUseProgram(0);
                 }
 
-                // 3. Desenha o Teto em cima do Incinerador
-                glColor3f(1, 1, 1);
                 glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, r.texTeto); // Usa a textura texTeto que adicionamos antes
-                
-                desenhaQuadTeto(wx, wz, TILE, 2.0f);
+                GLuint lightTex = (f > 0.5f) ? r.texLightOn : r.texTeto;
+                glBindTexture(GL_TEXTURE_2D, lightTex);
+                glColor3f(1, 1, 1);
 
-                // Desliga o shader para não bugar o próximo tile
-                glUseProgram(0);
+                float half = 1.0f;
+                glBegin(GL_QUADS);
+                glNormal3f(0.0f, -1.0f, 0.0f);
+                glTexCoord2f(0.0f, 0.0f); glVertex3f(wx - half, CEILING_H - 0.01f, wz - half);
+                glTexCoord2f(1.0f, 0.0f); glVertex3f(wx + half, CEILING_H - 0.01f, wz - half);
+                glTexCoord2f(1.0f, 1.0f); glVertex3f(wx + half, CEILING_H - 0.01f, wz + half);
+                glTexCoord2f(0.0f, 1.0f); glVertex3f(wx - half, CEILING_H - 0.01f, wz + half);
+                glEnd();
+
+                glColor3f(1, 1, 1);
+            }
+            else if (c == 'L')
+            {
+                // Chão interno primeiro (fica visível onde lava é descartada pelo recorte circular)
+                beginIndoor(wx, wz, time);
+                desenhaTileChao(wx, wz, r.texChaoInterno, true);
+                endIndoor();
+                // Lava por cima (com discard circular no shader)
+                desenhaTileLava(wx, wz, r, time);
+            }
+            else if (c == 'B')
+            {
+                desenhaTileSangue(wx, wz, r, time);
+            }
+            else if (c == '9')
+            {
+                beginIndoor(wx, wz, time);
+                desenhaTileChao(wx, wz, r.texChaoInterno, true);
+                endIndoor();
+                desenhaTileLava(wx, wz, r, time);
             }
         }
     }
@@ -540,8 +709,18 @@ static void drawSprite(float x, float z, float w, float h, GLuint tex, float cam
     glDisable(GL_BLEND);
 }
 
+// Calcula e aplica uniforms de iluminação (luminárias) para uma posição de sprite
+static void setLightingUniformsAt(float wx, float wz)
+{
+    if (!shaderLanterna) return;
+    shaderLanterna->use();
+    glUniform1i(locIsSprite, 1);
+    glUniform2f(locEntityWorldXZ, wx, wz);
+    setLampVisForPos(wx, wz, sTime, sLampPX, sLampPZ, sLampCount);
+}
+
 // Desenha inimigos e itens
-void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &items, float camX, float camZ, float dx, float dz, const RenderAssets &r)
+void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &items, float camX, float camZ, float dx, float dz, const RenderAssets &r, float time)
 {
     // AQUI ESTAVA O BUG: Removi o glDisable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
@@ -571,6 +750,36 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
 
         int t = (en.type < 0 || en.type > 4) ? 0 : en.type;
 
+        // --- LUMINÁRIA PISCANDO (type 5) ---
+        if (en.type == 5)
+        {
+            float flicker = flickerFluorescente(time + en.x * 3.7f + en.z * 2.3f);
+            float half = 1.0f;
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_ALPHA_TEST);
+            glAlphaFunc(GL_GREATER, 0.1f);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, r.texTeto);
+            glColor3f(flicker, flicker, flicker);
+
+            // Quad no teto voltado para baixo
+            glBegin(GL_QUADS);
+            glNormal3f(0.0f, -1.0f, 0.0f);
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(en.x - half, CEILING_H - 0.01f, en.z - half);
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(en.x + half, CEILING_H - 0.01f, en.z - half);
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(en.x + half, CEILING_H - 0.01f, en.z + half);
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(en.x - half, CEILING_H - 0.01f, en.z + half);
+            glEnd();
+
+            glColor3f(1, 1, 1);
+            glDisable(GL_ALPHA_TEST);
+            glDisable(GL_BLEND);
+            continue;
+        }
+
         GLuint currentTex;
         if (en.hurtTimer > 0.0f)
             currentTex = r.texEnemiesDamage[t];
@@ -589,6 +798,7 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
         }
 
         // --- Segurança para o shader ler a textura certa ---
+        setLightingUniformsAt(en.x, en.z);
         glActiveTexture(GL_TEXTURE0); 
         drawSprite(en.x, en.z, spriteW, spriteH, currentTex, camX, camZ);
     }
@@ -604,6 +814,7 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
 
         if (item.type == ITEM_AMMO && r.texItemAmmo != 0)
         {
+            setLightingUniformsAt(item.x, item.z);
             // Desenha um pequeno cubo 3D (caixa) em vez de um sprite
             glEnable(GL_TEXTURE_2D);
             glActiveTexture(GL_TEXTURE0);
@@ -659,6 +870,10 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
     }
 
     // Desliga o shader e restaura estados no final
+    if (shaderLanterna) {
+        shaderLanterna->use();
+        glUniform1i(locIsSprite, 0);
+    }
     glUseProgram(0);
     glDisable(GL_ALPHA_TEST);
 }

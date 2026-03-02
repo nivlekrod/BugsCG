@@ -20,6 +20,7 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
     
     // Limpa entidades antigas se houver
     lvl.enemies.clear();
+    lvl.totalHDs = 0;
 
     // 2. Escaneia o mapa procurando Bosses e o HD
     const auto& data = lvl.map.data();
@@ -69,6 +70,9 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
                 e.attackCooldown = 0.0f; 
 
                 lvl.enemies.push_back(e);
+
+                if (enemyType == 4)
+                    lvl.totalHDs++;
             }
         }
     }

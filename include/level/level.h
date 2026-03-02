@@ -10,6 +10,7 @@ struct Level
     LevelMetrics metrics;
     std::vector<Enemy> enemies;
     int originalEnemyCount = 0; // Quantidade de inimigos carregados do mapa (exclui os spawnados dinamicamente)
+    int totalHDs = 0; // Quantidade de HDs no mapa (necessários para vencer a fase)
 
     // ADICIONE ESTA LINHA:
     std::vector<Item> items;

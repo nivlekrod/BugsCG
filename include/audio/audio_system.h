@@ -38,6 +38,7 @@ struct AudioSystem {
 
     ALuint bufEnemy = 0;
     ALuint bufEnemyScream = 0;
+    ALuint bufLightFlicker = 0;
 
     // Sources
     ALuint srcAmbient = 0;
@@ -67,6 +68,9 @@ struct AudioSystem {
     std::vector<ALuint> srcEnemyScreams;  // one-shot 3D por inimigo
     std::vector<float> enemyScreamTimer;  // cooldown randômico
     std::vector<int> enemyPrevState;      // detectar morte "agora"
+
+    // Luminárias
+    std::vector<ALuint> srcLights;        // loop 3D por luminária
 };
 
 // -------- API do módulo --------

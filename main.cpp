@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 
     appInit();
 
-    if (!gameInit("maps/map1.txt")) return 1;
+    if (!gameInit("maps/map3.txt")) return 1;
 
 
 

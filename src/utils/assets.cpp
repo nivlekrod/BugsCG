@@ -18,6 +18,7 @@ bool loadAssets(GameAssets &a)
     a.texChaoInterno = carregaTextura("assets/100.png");
     a.texParedeInterna = carregaTextura("assets/060.png");
     a.texTeto = carregaTextura("assets/081.png");
+    a.texLightOn = carregaTextura("assets/081_on.png");
     a.texSkydome = carregaTextura("assets/Va4wUMQ.png");
 
     a.progSangue = criaShader("shaders/blood.vert", "shaders/blood.frag");
@@ -75,4 +76,25 @@ bool loadAssets(GameAssets &a)
     }
 
     return true;
+}
+
+void reloadPhaseTextures(GameAssets &a, int fase)
+{
+    std::printf("[DEBUG] reloadPhaseTextures chamada com fase=%d\n", fase);
+    if (fase == 2)
+    {
+        a.texParedeInterna = carregaTextura("assets/backrooms-wall-diffuse.png");
+        a.texChaoInterno   = carregaTextura("assets/backrooms-carpet-diffuse.png");
+        a.texTeto          = carregaTextura("assets/backrooms-ceiling-tile-diffuse.png");
+        a.texLightOn       = carregaTextura("assets/backrooms-ceiling-light-diffuse.png");
+        std::printf("[DEBUG] Backrooms textures: wall=%u floor=%u ceil=%u light=%u\n",
+            a.texParedeInterna, a.texChaoInterno, a.texTeto, a.texLightOn);
+    }
+    else
+    {
+        a.texParedeInterna = carregaTextura("assets/060.png");
+        a.texChaoInterno   = carregaTextura("assets/100.png");
+        a.texTeto          = carregaTextura("assets/081.png");
+        a.texLightOn       = carregaTextura("assets/081_on.png");
+    }
 }

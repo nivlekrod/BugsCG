@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 
-void drawDevourCounter(int w, int h, int queimados);
+void drawDevourCounter(int w, int h, int queimados, int totalHDs);
 
 static void begin2D(int w, int h)
 {
@@ -371,7 +371,8 @@ void hudRenderAll(
     bool showCrosshair, 
     bool showWeapon,    
     bool showDoomBar,   
-    int queimados)
+    int queimados,
+    int totalHDs)
 {
     // Restaura os visuais FPS originais
     if (showWeapon)  drawWeaponHUD(screenW, screenH, tex, state.weaponState);
@@ -381,13 +382,13 @@ void hudRenderAll(
     if (state.showAmmoDropWarning) drawAmmoWarning(screenW, screenH);
 
     // Mantém as mecânicas específicas da sua versão GameCG
-    drawDevourCounter(screenW, screenH, queimados);
+    drawDevourCounter(screenW, screenH, queimados, totalHDs);
     drawDamageOverlay(screenW, screenH, tex.texDamage, state.damageAlpha);
     drawHealthOverlay(screenW, screenH, tex.texHealthOverlay, state.healthAlpha);
     drawHDIcon(screenW, screenH, tex.texHD, state.componentesCarregados);
 }
 
-void drawDevourCounter(int w, int h, int queimados)
+void drawDevourCounter(int w, int h, int queimados, int totalHDs)
 {
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_DEPTH_TEST);
@@ -396,7 +397,7 @@ void drawDevourCounter(int w, int h, int queimados)
 
     begin2D(w, h);
 
-    int restantes = 10 - queimados;
+    int restantes = totalHDs - queimados;
     std::string texto = "HDs CORROMPIDOS RESTANTES: " + std::to_string(restantes);
 
     float scale = 0.00025f * h; 

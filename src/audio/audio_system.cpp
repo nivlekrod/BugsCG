@@ -192,6 +192,8 @@ void audioInit(AudioSystem& a, const Level& level) {
 
     a.bufEnemyScream = a.engine.loadWav("assets/audio/enemy_scream_mono.wav");
 
+    a.bufLightFlicker = a.engine.loadWav("assets/audio/light_flicker.wav");
+
     a.bufHurt = a.engine.loadWav("assets/audio/hurt_mono.wav");
     if (!a.bufHurt) a.bufHurt = a.engine.loadWav("assets/audio/hurt.wav");
 
@@ -337,6 +339,26 @@ void audioInit(AudioSystem& a, const Level& level) {
     // Inimigos
     ensureEnemySources(a, level);
     ensureEnemyExtra(a, level);
+
+    // Luminárias (3D loop por tile 'F' no mapa — criadas paradas, gerenciadas no update)
+    if (a.bufLightFlicker) {
+        const auto& mapData = level.map.data();
+        for (int z = 0; z < level.map.getHeight(); z++) {
+            for (int x = 0; x < (int)mapData[z].size(); x++) {
+                if (mapData[z][x] != 'F') continue;
+                float wx, wz;
+                level.metrics.tileCenter(x, z, wx, wz);
+                ALuint s = a.engine.createSource(a.bufLightFlicker, true);
+                if (!s) continue;
+                alSourcei(s, AL_SOURCE_RELATIVE, AL_FALSE);
+                a.engine.setSourcePos(s, {wx, 0.0f, wz});
+                a.engine.setSourceDistance(s, 0.5f, 6.0f, 4.0f);
+                a.engine.setSourceGain(s, AudioTuning::MASTER * 0.10f);
+                // NÃO toca aqui — gerenciado por distância no audioUpdate
+                a.srcLights.push_back(s);
+            }
+        }
+    }
 }
 
 void audioUpdate(
@@ -381,7 +403,7 @@ void audioUpdate(
         if (!s) continue;
 
         const auto& en = level.enemies[i];
-        if (en.state == STATE_DEAD || en.type == 4) {
+        if (en.state == STATE_DEAD || en.type == 4 || en.type == 5) {
             a.engine.stop(s);
             continue;
         }
@@ -409,7 +431,7 @@ void audioUpdate(
     // kill detect
     for (size_t i = 0; i < level.enemies.size(); ++i) {
         const auto& en = level.enemies[i];
-        if (en.type != 4 && a.enemyPrevState[i] != STATE_DEAD && en.state == STATE_DEAD) {
+        if (en.type != 4 && en.type != 5 && a.enemyPrevState[i] != STATE_DEAD && en.state == STATE_DEAD) {
             audioPlayKillAt(a, en.x, en.z);
         }
         a.enemyPrevState[i] = (int)en.state;
@@ -419,7 +441,7 @@ void audioUpdate(
     if (a.bufEnemyScream && !a.srcEnemyScreams.empty()) {
         for (size_t i = 0; i < level.enemies.size() && i < a.srcEnemyScreams.size(); ++i) {
             const auto& en = level.enemies[i];
-            if (en.state == STATE_DEAD || en.type == 4) continue;
+            if (en.state == STATE_DEAD || en.type == 4 || en.type == 5) continue;
 
             // distância para audibilidade
             float dxs = en.x - listener.pos.x;
@@ -450,6 +472,25 @@ void audioUpdate(
             float tmin = AudioTuning::ENEMY_SCREAM_MIN_INTERVAL;
             float tmax = AudioTuning::ENEMY_SCREAM_MAX_INTERVAL;
             a.enemyScreamTimer[i] = tmin + (tmax - tmin) * frand01();
+        }
+    }
+
+    // Luminárias — play/stop por proximidade
+    for (size_t i = 0; i < a.srcLights.size(); i++) {
+        ALuint s = a.srcLights[i];
+        if (!s) continue;
+        ALfloat lx, ly, lz;
+        alGetSource3f(s, AL_POSITION, &lx, &ly, &lz);
+        float dlx = lx - listener.pos.x;
+        float dlz = lz - listener.pos.z;
+        float dist = std::sqrt(dlx * dlx + dlz * dlz);
+        ALint st = 0;
+        alGetSourcei(s, AL_SOURCE_STATE, &st);
+        bool playing = (st == AL_PLAYING);
+        if (!playing && dist <= 5.0f) {
+            a.engine.play(s);
+        } else if (playing && dist >= 7.0f) {
+            a.engine.stop(s);
         }
     }
 

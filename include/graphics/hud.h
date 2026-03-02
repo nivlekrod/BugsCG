@@ -44,4 +44,5 @@ void hudRenderAll(
     bool showCrosshair,
     bool showWeapon,
     bool showDoomBar,
-    int queimados);
+    int queimados,
+    int totalHDs);

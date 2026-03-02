@@ -70,6 +70,7 @@ bool gameInit(const char *mapPath)
     g.r.texChaoInterno = gAssets.texChaoInterno;
     g.r.texParedeInterna = gAssets.texParedeInterna;
     g.r.texTeto = gAssets.texTeto;
+    g.r.texLightOn = gAssets.texLightOn;
     g.r.texSkydome = gAssets.texSkydome;
 
     g.r.texMenuBG = gAssets.texMenuBG;
@@ -104,8 +105,14 @@ bool gameInit(const char *mapPath)
     if (!loadLevel(gLevel, mapPath, GameConfig::TILE_SIZE))
         return false;
 
+    // Detecta a fase a partir do nome do mapa (ex: "maps/map2.txt" → fase 2)
+    const char *p = mapPath;
+    while (*p && !(*p >= '1' && *p <= '9')) p++;
+    if (*p) faseAtual = *p - '0';
+
     applySpawn(gLevel, camX, camZ);
     camY = GameConfig::PLAYER_EYE_Y;
+    yaw = 180.0f; // Olhar para o sul (direção da lava)
 
     glutKeyboardFunc(keyboard);
     glutKeyboardUpFunc(keyboardUp);
@@ -122,13 +129,15 @@ bool gameInit(const char *mapPath)
     componentesCarregados = 0;
     componentesQueimados = 0;
 
+    applyPhaseTextures();
+
     return true;
 }
 
 void gameReset()
 {
-    // Se a função foi chamada com 10 HDs queimados, é porque você GANHOU a fase!
-    if (componentesQueimados >= 10)
+    // Se a função foi chamada com todos os HDs queimados, é porque você GANHOU a fase!
+    if (componentesQueimados >= gLevel.totalHDs && gLevel.totalHDs > 0)
     {
         if (faseAtual >= 3)
             faseAtual = 1; // Zerou o jogo? Recomeça a tortura
@@ -152,6 +161,7 @@ void gameReset()
     componentesQueimados = 0;
 
     applySpawn(gLevel, camX, camZ); // Volta o player pro lugar de início
+    yaw = 180.0f;
 
     // --- 3. RESETA O MAPA (Revive HDs e Troca o Boss) ---
     gLevel.enemies.resize(gLevel.originalEnemyCount); // Remove os inimigos spawnados dinamicamente durante a partida
@@ -180,6 +190,17 @@ void gameReset()
                 en.type = 0; // Fase 3: Júlio
         }
     }
+
+    applyPhaseTextures();
+}
+
+void applyPhaseTextures()
+{
+    reloadPhaseTextures(gAssets, faseAtual);
+    g.r.texParedeInterna = gAssets.texParedeInterna;
+    g.r.texChaoInterno   = gAssets.texChaoInterno;
+    g.r.texTeto          = gAssets.texTeto;
+    g.r.texLightOn       = gAssets.texLightOn;
 }
 
 void gameUpdate(float dt)
@@ -224,7 +245,7 @@ void gameUpdate(float dt)
 
     updateEntities(dt);
 
-    if (componentesQueimados >= 10)
+    if (componentesQueimados >= gLevel.totalHDs && gLevel.totalHDs > 0)
     {
         if (faseAtual >= 3)
         {
@@ -266,7 +287,7 @@ void drawWorld3D()
     drawLevel(gLevel.map, camX, camZ, dirX, dirZ, g.r, g.time);
 
     // CORRIGIDO: Agora chamamos com "gLevel.items"
-    drawEntities(gLevel.enemies, gLevel.items, camX, camZ, dirX, dirZ, g.r);
+    drawEntities(gLevel.enemies, gLevel.items, camX, camZ, dirX, dirZ, g.r, g.time);
 }
 
 void gameRender()
@@ -296,7 +317,7 @@ void gameRender()
     else if (g.state == GameState::PAUSADO)
     {
         drawWorld3D();
-        hudRenderAll(janelaW, janelaH, gHudTex, hs, false, false, true, componentesQueimados);
+        hudRenderAll(janelaW, janelaH, gHudTex, hs, false, false, true, componentesQueimados, gLevel.totalHDs);
         pauseMenuRender(janelaW, janelaH, g.time);
     }
     else if (g.state == GameState::FASE_CONCLUIDA)
@@ -317,7 +338,7 @@ void gameRender()
     else
     {
         drawWorld3D();
-        hudRenderAll(janelaW, janelaH, gHudTex, hs, true, true, true, componentesQueimados);
+        hudRenderAll(janelaW, janelaH, gHudTex, hs, true, true, true, componentesQueimados, gLevel.totalHDs);
         menuMeltRenderOverlay(janelaW, janelaH, g.time);
     }
     glutSwapBuffers();

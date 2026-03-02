@@ -118,7 +118,7 @@ void keyboard(unsigned char key, int, int)
                     componentesCarregados = 0;
                     componentesQueimados++;
                     audioPlayBurnHD(gameAudio());
-                    printf("\n>>> SUCESSO! Peça destruida! Total: %d/10\n", componentesQueimados);
+                    printf("\n>>> SUCESSO! Peça destruida! Total: %d/%d\n", componentesQueimados, gameLevel().totalHDs);
                 } else {
                     printf("\n>>> ERRO: Voce nao esta no Incinerador (Bloco 9)!\n");
                 }
@@ -150,6 +150,8 @@ void keyboard(unsigned char key, int, int)
                 gameContext().player.reserveAmmo = 25;
                 
                 applySpawn(gameLevel(), camX, camZ); 
+                yaw = 180.0f;
+                applyPhaseTextures();
                 gameSetState(GameState::JOGANDO);
             } else {
                 gameSetState(GameState::MENU_INICIAL);
@@ -171,6 +173,7 @@ void keyboard(unsigned char key, int, int)
             // Carrega o mapa 1 de volta para deixar o jogo pronto pra um novo "Play"
             if (loadLevel(gameLevel(), "maps/map1.txt", GameConfig::TILE_SIZE)) {
                 applySpawn(gameLevel(), camX, camZ);
+                yaw = 180.0f;
             }
 
             gameSetState(GameState::MENU_INICIAL);

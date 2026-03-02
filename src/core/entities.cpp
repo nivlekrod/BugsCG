@@ -170,6 +170,8 @@ void updateEntities(float dt)
     // Apenas passamos pelas entidades (Bosses e HDs)
     for (auto& en : lvl.enemies)
     {
+        if (en.type == 5) continue; // Luminária - estática, sem IA
+
         // --- LÓGICA DE RESPAWN PARA INIMIGOS MORTOS ---
         if (en.state == STATE_DEAD) 
         {
@@ -247,7 +249,7 @@ void updateEntities(float dt)
         // =============================================================
         else if (en.type == 4)
         {
-            if (dist < 1.2f && componentesCarregados == 0)
+            if (dist < 2.5f && componentesCarregados == 0)
             {
                 en.state = STATE_DEAD; // O HD some do mapa
                 componentesCarregados = 1;

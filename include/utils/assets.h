@@ -16,6 +16,7 @@ struct GameAssets
     GLuint texChaoInterno = 0;
     GLuint texParedeInterna = 0;
     GLuint texTeto = 0;
+    GLuint texLightOn = 0;
     GLuint texSkydome = 0;
 
     // --- Efeitos de Tela (HUD Terror) ---
@@ -45,3 +46,4 @@ struct GameAssets
 };
 
 bool loadAssets(GameAssets &a);
+void reloadPhaseTextures(GameAssets &a, int fase);

@@ -5,11 +5,20 @@ uniform float uTime;        // tempo em segundos
 uniform float uStrength;    // força da distorção 
 uniform vec2  uScroll;      // direção de rolagem da lava
 uniform float uHeat;        // intensidade do brilho
+uniform vec2  uLavaCenterPos; // centro da lava no mundo (para recorte circular)
+uniform float uLavaRadius;    // raio do círculo de lava (0 = sem recorte)
 
 varying vec2 vTexCoord;
+varying vec3 vWorldPos;
 
 void main()
 {
+    // Recorte circular
+    if (uLavaRadius > 0.0) {
+        float d = distance(vec2(vWorldPos.x, vWorldPos.z), uLavaCenterPos);
+        if (d > uLavaRadius) discard;
+    }
+
     // scroll da textura
     vec2 uv = vTexCoord + uScroll * uTime;
 
