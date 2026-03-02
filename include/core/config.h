@@ -7,6 +7,6 @@ namespace GameConfig
     constexpr int TIMER_MS = 16; // ~60fps
 
     // fração do tile usada como raio do jogador (colisão)
-    constexpr float PLAYER_RADIUS_FACTOR = 0.35f;
+    constexpr float PLAYER_RADIUS_FACTOR = 0.25f;
     constexpr float PLAYER_STEPS = 0.15f;
 }

@@ -582,7 +582,7 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
             setLampVisForPos(wx, wz, time, lampPX, lampPZ, lampCount);
 
             bool isEntity = (c == 'J' || c == 'T' || c == 'M' || c == 'K' ||
-                             c == 'G' || c == 'H' || c == 'A' || c == 'E' ||
+                             c == 'G' || c == 'N' || c == 'A' || c == 'E' ||
                              c == 'I');
 
             if (isEntity)
@@ -830,9 +830,9 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
         float spriteW = 2.5f; 
         float spriteH = 2.5f; 
 
-        if (en.type == 4) {   // Se for o HD
-            spriteW = 0.5f;   
+        if (en.type == 4) {   // Se for o notebook
             spriteH = 0.5f;   
+            spriteW = 0.75f;  // 1536/1024 = 1.5 → 0.5 * 1.5
         }
 
         // --- Segurança para o shader ler a textura certa ---

@@ -47,7 +47,7 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
                 else                     enemyType = 0; // Fase 3+: Joaninha (J)
             }
             else if (c == 'K') enemyType = 3; // Monstro extra
-            else if (c == 'H') enemyType = 4; // Item Coletável: HD
+            else if (c == 'N') enemyType = 4; // Item Coletável: Notebook
 
             if (enemyType != -1) 
             {

@@ -13,6 +13,7 @@
 #include "level/level.h" // Necessário para ler o mapa
 #include "core/config.h"
 #include "core/player.h"
+#include "core/entities.h"
 
 // --- VARIÁVEIS EXTERNAS DO DEVOUR ---
 extern int componentesCarregados;
@@ -145,7 +146,8 @@ void keyboard(unsigned char key, int, int)
             if (loadLevel(gameLevel(), nomeMapa, GameConfig::TILE_SIZE)) { 
                 componentesQueimados = 0;
                 componentesCarregados = 0;
-                gameContext().player.health = 100; 
+                resetSpawnState();
+                gameContext().player.health = 100;
                 gameContext().player.currentAmmo = 12;
                 gameContext().player.reserveAmmo = 25;
                 
