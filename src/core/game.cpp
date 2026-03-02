@@ -190,11 +190,11 @@ void gameReset()
         if (en.type == 0 || en.type == 1 || en.type == 2)
         {
             if (faseAtual == 1)
-                en.type = 2; // Fase 1: Marco Leal
+                en.type = 2; // Fase 1: Mosca
             else if (faseAtual == 2)
-                en.type = 1; // Fase 2: Thiago
+                en.type = 1; // Fase 2: Grilo
             else if (faseAtual >= 3)
-                en.type = 0; // Fase 3: Júlio
+                en.type = 0; // Fase 3: Joaninha
         }
     }
 

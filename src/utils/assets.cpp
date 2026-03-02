@@ -25,17 +25,17 @@ bool loadAssets(GameAssets &a)
     a.progLava = criaShader("shaders/lava.vert", "shaders/lava.frag");
     a.progFogo = criaShader("shaders/fire.vert", "shaders/fire.frag");
 
-    // --- BOSS 1 ('J') - Júlio ---
+    // --- BOSS 1 ('J') - Joaninha ---
     a.texEnemies[0] = carregaTextura("assets/enemies/enemy.png");
     a.texEnemiesRage[0] = carregaTextura("assets/enemies/enemyRage.png");
     a.texEnemiesDamage[0] = carregaTextura("assets/enemies/enemyRageDamage.png");
 
-    // --- BOSS 2 ('T') - Thiago ---
+    // --- BOSS 2 ('G') - Grilo ---
     a.texEnemies[1] = carregaTextura("assets/enemies/enemy2.png");
     a.texEnemiesRage[1] = carregaTextura("assets/enemies/enemyRage2.png");
     a.texEnemiesDamage[1] = carregaTextura("assets/enemies/enemyRageDamage2.png");
 
-    // --- BOSS 3 ('M') - Marco Leal ---
+    // --- BOSS 3 ('M') - Mosca ---
     a.texEnemies[2] = carregaTextura("assets/enemies/enemy3.png");
     a.texEnemiesRage[2] = carregaTextura("assets/enemies/enemyRage3.png");
     a.texEnemiesDamage[2] = carregaTextura("assets/enemies/enemyRageDamage3.png");

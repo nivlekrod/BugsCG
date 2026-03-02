@@ -201,7 +201,7 @@ void updateEntities(float dt)
         float dist = std::sqrt(dx * dx + dz * dz);
         
         // =============================================================
-        // 1. BOSSES (Tipo 0 = Júlio, Tipo 1 = Thiago, Tipo 2 = Marco)
+        // 1. BOSSES (Tipo 0 = Joaninha, Tipo 1 = Grilo, Tipo 2 = Mosca)
         // =============================================================
         if (en.type == 0 || en.type == 1 || en.type == 2) 
         {

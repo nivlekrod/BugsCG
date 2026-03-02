@@ -39,14 +39,14 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
             int enemyType = -1; 
 
             // Se encontrar qualquer marcador de Boss no .txt
-            if (c == 'J' || c == 'T' || c == 'M') 
+            if (c == 'J' || c == 'G' || c == 'M') 
             {
                 // Força o boss específico da fase atual
-                if (faseAtual == 1)      enemyType = 2; // Fase 1: Marco Leal (M)
-                else if (faseAtual == 2) enemyType = 1; // Fase 2: Thiago (T)
-                else                     enemyType = 0; // Fase 3+: Júlio (J)
+                if (faseAtual == 1)      enemyType = 2; // Fase 1: Mosca (M)
+                else if (faseAtual == 2) enemyType = 1; // Fase 2: Grilo (G)
+                else                     enemyType = 0; // Fase 3+: Joaninha (J)
             }
-            else if (c == 'G') enemyType = 3; // Monstro extra
+            else if (c == 'K') enemyType = 3; // Monstro extra
             else if (c == 'H') enemyType = 4; // Item Coletável: HD
 
             if (enemyType != -1) 

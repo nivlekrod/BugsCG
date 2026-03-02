@@ -94,6 +94,10 @@ void playerTryAttack()
     dirX /= len;
     dirZ /= len;
 
+    // Calcula tan(pitch) para verificar altura do tiro no ponto de impacto
+    float radPitch = pitch * 3.14159f / 180.0f;
+    float tanPitch = std::tan(radPitch);
+
     int bestIdx = -1;
     float bestT = MAX_RANGE;
 
@@ -105,6 +109,11 @@ void playerTryAttack()
         float tHit = 0.0f;
         if (rayCircleIntersectXZ(camX, camZ, dirX, dirZ, en.x, en.z, HIT_RADIUS, tHit))
         {
+            // Verifica se o raio 3D atinge a altura do sprite
+            float hitY = camY + tHit * tanPitch;
+            float spriteH = (en.type == 4) ? 0.5f : 2.5f;
+            if (hitY < 0.0f || hitY > spriteH) continue;
+
             if (tHit <= bestT)
             {
                 bestT = tHit;
