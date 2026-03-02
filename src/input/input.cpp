@@ -19,6 +19,7 @@
 extern int componentesCarregados;
 extern int componentesQueimados;
 extern int faseAtual;
+extern bool doorActive;
 
 void keyboard(unsigned char key, int, int)
 {
@@ -92,39 +93,50 @@ void keyboard(unsigned char key, int, int)
         // --- QUEIMAR NO INCINERADOR (TECLA E) ---
         case 'e':
         case 'E':
-            if (componentesCarregados > 0) {
-                Level& lvl = gameLevel();
-                float tile = lvl.metrics.tile;
-                float offX = lvl.metrics.offsetX;
-                float offZ = lvl.metrics.offsetZ;
-                
-                bool pertoDoIncinerador = false;
+        {
+            Level& lvl = gameLevel();
+            float tile = lvl.metrics.tile;
+            float offX = lvl.metrics.offsetX;
+            float offZ = lvl.metrics.offsetZ;
+            
+            bool pertoDoIncinerador = false;
 
-                // Varre os blocos ao redor do jogador para ver se tem um '9'
-                int pX = (int)((camX - offX) / tile);
-                int pZ = (int)((camZ - offZ) / tile);
+            int pX = (int)((camX - offX) / tile);
+            int pZ = (int)((camZ - offZ) / tile);
 
-                for (int bz = pZ - 1; bz <= pZ + 1; bz++) {
-                    for (int bx = pX - 1; bx <= pX + 1; bx++) {
-                        if (bz >= 0 && bz < lvl.map.getHeight() && bx >= 0 && bx < (int)lvl.map.data()[bz].size()) {
-                            if (lvl.map.data()[bz][bx] == '9') {
-                                pertoDoIncinerador = true;
-                                break;
-                            }
+            for (int bz = pZ - 1; bz <= pZ + 1; bz++) {
+                for (int bx = pX - 1; bx <= pX + 1; bx++) {
+                    if (bz >= 0 && bz < lvl.map.getHeight() && bx >= 0 && bx < (int)lvl.map.data()[bz].size()) {
+                        if (lvl.map.data()[bz][bx] == '9') {
+                            pertoDoIncinerador = true;
+                            break;
                         }
                     }
                 }
+            }
 
-                if (pertoDoIncinerador) {
-                    componentesCarregados = 0;
-                    componentesQueimados++;
-                    audioPlayBurnHD(gameAudio());
-                    printf("\n>>> SUCESSO! Peça destruida! Total: %d/%d\n", componentesQueimados, gameLevel().totalHDs);
+            // Interagir com a porta de transição
+            if (doorActive && pertoDoIncinerador) {
+                doorActive = false;
+                if (faseAtual >= 3) {
+                    gameSetState(GameState::JOGO_ZERADO);
                 } else {
-                    printf("\n>>> ERRO: Voce nao esta no Incinerador (Bloco 9)!\n");
+                    gameSetState(GameState::FASE_CONCLUIDA);
                 }
+                glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
+            }
+            // Queimar notebook no incinerador
+            else if (componentesCarregados > 0 && pertoDoIncinerador) {
+                componentesCarregados = 0;
+                componentesQueimados++;
+                audioPlayBurnHD(gameAudio());
+                printf("\n>>> SUCESSO! Peça destruida! Total: %d/%d\n", componentesQueimados, gameLevel().totalHDs);
+            }
+            else if (componentesCarregados > 0 && !pertoDoIncinerador) {
+                printf("\n>>> ERRO: Voce nao esta no Incinerador (Bloco 9)!\n");
             }
             break;
+        }
         }
     }
     // --- FASE CONCLUIDA ---

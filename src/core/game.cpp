@@ -29,6 +29,7 @@
 int componentesCarregados = 0;
 int componentesQueimados = 0;
 int faseAtual = 1;
+bool doorActive = false;
 
 static HudTextures gHudTex;
 static GameContext g;
@@ -94,6 +95,8 @@ bool gameInit(const char *mapPath)
     g.r.texItemAmmo = gAssets.texItemAmmo;
     g.r.texPilar = gAssets.texPilar;
     g.r.texAltarChao = gAssets.texAltarChao;
+    g.r.texPortal = gAssets.texPortal;
+    g.r.progPortal = gAssets.progPortal;
 
     for (int i = 0; i < 5; i++)
     {
@@ -132,6 +135,7 @@ bool gameInit(const char *mapPath)
 
     componentesCarregados = 0;
     componentesQueimados = 0;
+    doorActive = false;
 
     applyPhaseTextures();
 
@@ -166,8 +170,9 @@ void gameReset()
 
     componentesCarregados = 0;
     componentesQueimados = 0;
+    doorActive = false;
 
-    applySpawn(gLevel, camX, camZ); // Volta o player pro lugar de início
+    applySpawn(gLevel, camX, camZ);// Volta o player pro lugar de início
     yaw = 180.0f;
 
     // --- 3. RESETA O MAPA (Revive HDs e Troca o Boss) ---
@@ -259,17 +264,19 @@ void gameUpdate(float dt)
 
     updateEntities(dt);
 
-    if (componentesQueimados >= gLevel.totalHDs && gLevel.totalHDs > 0)
+    if (componentesQueimados >= gLevel.totalHDs && gLevel.totalHDs > 0 && !doorActive)
     {
         if (faseAtual >= 3)
         {
-            g.state = GameState::JOGO_ZERADO;
+            // Fase 3: sem portal, transição direta
+            g.state = GameState::FASE_CONCLUIDA;
+            printf("\n>>> FASE 3 CONCLUÍDA! JOGO ZERADO!\n");
         }
         else
         {
-            g.state = GameState::FASE_CONCLUIDA;
+            doorActive = true;
+            printf("\n>>> TODOS OS COMPONENTES QUEIMADOS! Um portal apareceu na lava. Vá até ele e pressione E!\n");
         }
-        glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
     }
 
     if (g.player.health <= 0)

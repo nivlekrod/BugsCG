@@ -38,6 +38,8 @@ struct GameAssets
     GLuint texPilar = 0;       // 565.png - pilares do altar
     GLuint texAltarChao = 0;   // 190.png - piso do altar
 
+    GLuint texPortal = 0;      // portal.png - portal de transição
+
     // VARIÁVEIS PARA A BARRA INFERIOR (HUD TIPO DOOM)
     GLuint texGunHUD = 0;   // Ícone da arma na barra
     GLuint texHudFundo = 0; // Fundo da barra
@@ -46,6 +48,7 @@ struct GameAssets
     GLuint progSangue = 0;
     GLuint progLava = 0;
     GLuint progFogo = 0;
+    GLuint progPortal = 0;
 };
 
 bool loadAssets(GameAssets &a);

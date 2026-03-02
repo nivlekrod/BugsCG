@@ -35,6 +35,8 @@ struct RenderAssets
     GLuint texPilar = 0;       // 565.png - textura dos pilares do altar
     GLuint texAltarChao = 0;   // 190.png - textura do piso do altar
 
+    GLuint texPortal = 0;      // portal.png - portal de transição
+
     GLuint texEnemies[5] = {0};
     GLuint texEnemiesRage[5] = {0};
     GLuint texEnemiesDamage[5] = {0};
@@ -44,6 +46,7 @@ struct RenderAssets
     GLuint progSangue = 0;
     GLuint progLava = 0;
     GLuint progFogo = 0;
+    GLuint progPortal = 0;
 };
 
 struct GameContext

@@ -24,6 +24,7 @@ bool loadAssets(GameAssets &a)
     a.progSangue = criaShader("shaders/blood.vert", "shaders/blood.frag");
     a.progLava = criaShader("shaders/lava.vert", "shaders/lava.frag");
     a.progFogo = criaShader("shaders/fire.vert", "shaders/fire.frag");
+    a.progPortal = criaShader("shaders/portal.vert", "shaders/portal.frag");
 
     // --- BOSS 1 ('J') - Joaninha ---
     a.texEnemies[0] = carregaTextura("assets/enemies/enemy.png");
@@ -49,6 +50,9 @@ bool loadAssets(GameAssets &a)
     a.texEnemies[4] = carregaTextura("assets/notebook_wPc.png");
     a.texEnemiesRage[4] = a.texEnemies[4];   // HD não tem raiva
     a.texEnemiesDamage[4] = a.texEnemies[4]; // HD não toma dano
+
+    // --- PORTAL ---
+    a.texPortal = carregaTextura("assets/portal.png");
 
     // --- OVERLAYS DE TELA (Efeitos) ---
     a.texHealthOverlay = carregaTextura("assets/heal.png");

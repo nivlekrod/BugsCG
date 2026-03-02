@@ -7,10 +7,12 @@
 #include "graphics/drawlevel.h"
 #include "graphics/altar.h"
 #include "level/levelmetrics.h"
+#include "level/level.h"
 #include "utils/utils.h"
 #include <cstdio>
 
 extern int faseAtual;
+extern bool doorActive;
 
 // =====================
 // CONFIG / CONSTANTES
@@ -30,6 +32,8 @@ static const int MAX_LAMPS = 32;
 static float sLampPX[MAX_LAMPS], sLampPZ[MAX_LAMPS];
 static int sLampCount = 0;
 static float sTime = 0;
+static float sLavaCenterX = 0, sLavaCenterZ = 0;
+static bool sHasLavaCenter = false;
 static const MapLoader* sMapPtr = nullptr;
 static LevelMetrics sMetrics;
 
@@ -526,6 +530,7 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
     }
     // Armazena para uso em drawEntities
     sLavaCX = lavaCX; sLavaCZ = lavaCZ; sLavaCount = lavaCount;
+    sLavaCenterX = lavaCX; sLavaCenterZ = lavaCZ; sHasLavaCenter = (lavaCount > 0);
     for (int i = 0; i < lampCount; i++) { sLampPX[i] = lampPX[i]; sLampPZ[i] = lampPZ[i]; }
     sLampCount = lampCount;
     sTime = time;
@@ -905,6 +910,45 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
 
             glPopMatrix();
         }
+    }
+
+    // --- PORTAL DE TRANSIÇÃO (aparece na lava quando todos os notebooks foram queimados) ---
+    if (doorActive && sHasLavaCenter && r.texPortal != 0 && r.progPortal != 0)
+    {
+        glUseProgram(r.progPortal);
+        glUniform1i(glGetUniformLocation(r.progPortal, "uTexture"), 0);
+        glUniform1f(glGetUniformLocation(r.progPortal, "uTime"), time);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, r.texPortal);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_LIGHTING);
+        glColor3f(1, 1, 1);
+
+        float portalW = 3.0f, portalH = 3.0f;
+        float hw = portalW * 0.5f;
+
+        glPushMatrix();
+        glTranslatef(sLavaCenterX, 0.0f, sLavaCenterZ);
+
+        float ddx = camX - sLavaCenterX;
+        float ddz = camZ - sLavaCenterZ;
+        float angle = std::atan2(ddx, ddz) * 180.0f / 3.14159f;
+        glRotatef(angle, 0.0f, 1.0f, 0.0f);
+
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 1); glVertex3f(-hw, 0, 0);
+        glTexCoord2f(1, 1); glVertex3f( hw, 0, 0);
+        glTexCoord2f(1, 0); glVertex3f( hw, portalH, 0);
+        glTexCoord2f(0, 0); glVertex3f(-hw, portalH, 0);
+        glEnd();
+
+        glPopMatrix();
+        glEnable(GL_LIGHTING);
+        glDisable(GL_BLEND);
+        glUseProgram(0);
     }
 
     // Desliga o shader e restaura estados no final
