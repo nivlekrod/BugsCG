@@ -148,7 +148,7 @@ bool gameInit(const char *mapPath)
 void gameReset()
 {
     // Se a função foi chamada com todos os Notebooks queimados, é porque você GANHOU a fase!
-    if (componentesQueimados >= gLevel.totalNotebooks && gLevel.totalNotebooks > 0)
+    if (componentesQueimados >= gLevel.totalNotebooks && gLevel.totalNotebooks > 0 && !doorActive)
     {
         if (faseAtual >= 3)
             faseAtual = 1; // Zerou o jogo? Recomeça a tortura
