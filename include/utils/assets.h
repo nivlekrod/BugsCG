@@ -23,7 +23,7 @@ struct GameAssets
     GLuint texHealthOverlay = 0; // Flash de cura/transição
     GLuint texDamage = 0;        // Flash de dano (Boss te bateu)
 
-    // --- Entidades (Bosses e HDs) ---
+    // --- Entidades (Bosses e Notebooks) ---
     GLuint texEnemies[5]       = {0, 0, 0, 0, 0};
     GLuint texEnemiesRage[5]   = {0, 0, 0, 0, 0};
     GLuint texEnemiesDamage[5] = {0, 0, 0, 0, 0};

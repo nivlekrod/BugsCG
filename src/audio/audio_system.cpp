@@ -184,11 +184,11 @@ void audioInit(AudioSystem& a, const Level& level) {
 
     a.bufKill = a.engine.loadWav("assets/audio/kill_mono.wav");
     
-    // Coleta de HD (2D one-shot)
-    a.bufCollectHD = a.engine.loadWav("assets/audio/collect_hd_mono.wav");
+    // Coleta de Notebook (2D one-shot)
+    a.bufCollectNotebook = a.engine.loadWav("assets/audio/collect_mono.wav");
 
-    // Queima de HD (2D one-shot) - Fogo/estalo
-    a.bufBurnHD = a.engine.loadWav("assets/audio/fire.wav");
+    // Queima de Notebook (2D one-shot) - Fogo/estalo
+    a.bufBurnNotebook = a.engine.loadWav("assets/audio/fire.wav");
 
     a.bufEnemyScream = a.engine.loadWav("assets/audio/enemy_scream_mono.wav");
 
@@ -260,33 +260,33 @@ void audioInit(AudioSystem& a, const Level& level) {
         }
     }
     
-    // Coleta de HD (2D one-shot)
-    if (a.bufCollectHD) {
-        a.srcCollectHD = a.engine.createSource(a.bufCollectHD, false);
-        if (a.srcCollectHD) {
-            alSourcei(a.srcCollectHD, AL_SOURCE_RELATIVE, AL_TRUE);
-            alSource3f(a.srcCollectHD, AL_POSITION, 0, 0, 0);
+    // Coleta de Notebook (2D one-shot)
+    if (a.bufCollectNotebook) {
+        a.srcCollectNotebook = a.engine.createSource(a.bufCollectNotebook, false);
+        if (a.srcCollectNotebook) {
+            alSourcei(a.srcCollectNotebook, AL_SOURCE_RELATIVE, AL_TRUE);
+            alSource3f(a.srcCollectNotebook, AL_POSITION, 0, 0, 0);
 
             // Permite que o som passe do limite padrão de 1.0 no OpenAL
-            alSourcef(a.srcCollectHD, AL_MAX_GAIN, 5.0f); 
+            alSourcef(a.srcCollectNotebook, AL_MAX_GAIN, 5.0f); 
 
-            a.engine.setSourceGain(a.srcCollectHD, AudioTuning::MASTER * 3.5f); // Volume muito alto
-            a.engine.setSourcePitch(a.srcCollectHD, 1.0f); // Pitch normal
+            a.engine.setSourceGain(a.srcCollectNotebook, AudioTuning::MASTER * 3.5f); // Volume muito alto
+            a.engine.setSourcePitch(a.srcCollectNotebook, 1.0f); // Pitch normal
         }
     }
 
-    // Queima de HD (2D one-shot)
-    if (a.bufBurnHD) {
-        a.srcBurnHD = a.engine.createSource(a.bufBurnHD, false);
-        if (a.srcBurnHD) {
-            alSourcei(a.srcBurnHD, AL_SOURCE_RELATIVE, AL_TRUE);
-            alSource3f(a.srcBurnHD, AL_POSITION, 0, 0, 0);
-            a.engine.setSourceGain(a.srcBurnHD, AudioTuning::MASTER * 2.0f); 
-            a.engine.setSourcePitch(a.srcBurnHD, 1.0f); // Pitch normal
+    // Queima de Notebook (2D one-shot)
+    if (a.bufBurnNotebook) {
+        a.srcBurnNotebook = a.engine.createSource(a.bufBurnNotebook, false);
+        if (a.srcBurnNotebook) {
+            alSourcei(a.srcBurnNotebook, AL_SOURCE_RELATIVE, AL_TRUE);
+            alSource3f(a.srcBurnNotebook, AL_POSITION, 0, 0, 0);
+            a.engine.setSourceGain(a.srcBurnNotebook, AudioTuning::MASTER * 2.0f); 
+            a.engine.setSourcePitch(a.srcBurnNotebook, 1.0f); // Pitch normal
         }
     }
     
-    // Efeito secundário da queima do HD (Borbulho rápido)
+    // Efeito secundário da queima do Notebook (Borbulho rápido)
     if (a.bufLava) {
         a.srcBurnLava = a.engine.createSource(a.bufLava, false);
         if (a.srcBurnLava) {
@@ -374,7 +374,7 @@ void audioUpdate(
     // Listener
     a.engine.setListener(listener.pos, listener.vel, listener.forward, listener.up);
 
-    // Controle do som secundário de queima (borbulho do HD afundando)
+    // Controle do som secundário de queima (borbulho do Notebook afundando)
     if (a.burnLavaTimer > 0.0f) {
         a.burnLavaTimer -= dt;
         if (a.burnLavaTimer <= 0.0f && a.srcBurnLava) {
@@ -571,18 +571,18 @@ void audioPlayKillAt(AudioSystem& a, float x, float z) {
     play3DAt(a, a.srcKill, x, z);
 }
 
-void audioPlayCollectHD(AudioSystem& a) {
-    if (!a.ok || a.srcCollectHD == 0) return;
-    a.engine.stop(a.srcCollectHD);
-    a.engine.play(a.srcCollectHD);
+void audioPlayCollectNotebook(AudioSystem& a) {
+    if (!a.ok || a.srcCollectNotebook == 0) return;
+    a.engine.stop(a.srcCollectNotebook);
+    a.engine.play(a.srcCollectNotebook);
 }
 
-void audioPlayBurnHD(AudioSystem& a) {
+void audioPlayBurnNotebook(AudioSystem& a) {
     if (!a.ok) return;
     
-    if (a.srcBurnHD) {
-        a.engine.stop(a.srcBurnHD);
-        a.engine.play(a.srcBurnHD);
+    if (a.srcBurnNotebook) {
+        a.engine.stop(a.srcBurnNotebook);
+        a.engine.play(a.srcBurnNotebook);
     }
     
     // Inicia o borbulho

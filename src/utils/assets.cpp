@@ -46,10 +46,10 @@ bool loadAssets(GameAssets &a)
     a.texEnemiesRage[3] = carregaTextura("assets/enemies/enemyRage4.png");
     a.texEnemiesDamage[3] = carregaTextura("assets/enemies/enemyRageDamage4.png");
 
-    // --- COLETÁVEL: HD ('H') ---
+    // --- COLETÁVEL: Notebook ('N') ---
     a.texEnemies[4] = carregaTextura("assets/notebook_wPc.png");
-    a.texEnemiesRage[4] = a.texEnemies[4];   // HD não tem raiva
-    a.texEnemiesDamage[4] = a.texEnemies[4]; // HD não toma dano
+    a.texEnemiesRage[4] = a.texEnemies[4];   // Notebook não tem raiva
+    a.texEnemiesDamage[4] = a.texEnemies[4]; // Notebook não toma dano
 
     // --- PORTAL ---
     a.texPortal = carregaTextura("assets/portal.png");

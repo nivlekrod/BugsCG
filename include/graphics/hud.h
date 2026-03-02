@@ -17,7 +17,7 @@ struct HudTextures
 
     GLuint texDamage = 0;
     GLuint texHealthOverlay = 0;
-    GLuint texHD = 0;
+    GLuint texNotebook = 0;
 };
 
 struct HudState
@@ -45,4 +45,4 @@ void hudRenderAll(
     bool showWeapon,
     bool showDoomBar,
     int queimados,
-    int totalHDs);
+    int totalNotebooks);

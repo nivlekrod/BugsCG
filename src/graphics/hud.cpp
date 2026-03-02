@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 
-void drawDevourCounter(int w, int h, int queimados, int totalHDs);
+void drawBugsCounter(int w, int h, int queimados, int totalNotebooks);
 
 static void begin2D(int w, int h)
 {
@@ -303,9 +303,9 @@ static void drawHealthOverlay(int w, int h, GLuint texHealth, float alpha)
     end2D();
 }
 
-static void drawHDIcon(int w, int h, GLuint texHD, int carregados)
+static void drawNotebookIcon(int w, int h, GLuint texNotebook, int carregados)
 {
-    if (carregados <= 0 || texHD == 0) return;
+    if (carregados <= 0 || texNotebook == 0) return;
 
     begin2D(w, h);
     glDisable(GL_DEPTH_TEST);
@@ -318,7 +318,7 @@ static void drawHDIcon(int w, int h, GLuint texHD, int carregados)
     glAlphaFunc(GL_GREATER, 0.1f);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texHD);
+    glBindTexture(GL_TEXTURE_2D, texNotebook);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
     float size = h * 0.15f; 
@@ -372,7 +372,7 @@ void hudRenderAll(
     bool showWeapon,    
     bool showDoomBar,   
     int queimados,
-    int totalHDs)
+    int totalNotebooks)
 {
     // Restaura os visuais FPS originais
     if (showWeapon)  drawWeaponHUD(screenW, screenH, tex, state.weaponState);
@@ -382,13 +382,13 @@ void hudRenderAll(
     if (state.showAmmoDropWarning) drawAmmoWarning(screenW, screenH);
 
     // Mantém as mecânicas específicas da sua versão GameCG
-    drawDevourCounter(screenW, screenH, queimados, totalHDs);
+    drawBugsCounter(screenW, screenH, queimados, totalNotebooks);
     drawDamageOverlay(screenW, screenH, tex.texDamage, state.damageAlpha);
     drawHealthOverlay(screenW, screenH, tex.texHealthOverlay, state.healthAlpha);
-    drawHDIcon(screenW, screenH, tex.texHD, state.componentesCarregados);
+    drawNotebookIcon(screenW, screenH, tex.texNotebook, state.componentesCarregados);
 }
 
-void drawDevourCounter(int w, int h, int queimados, int totalHDs)
+void drawBugsCounter(int w, int h, int queimados, int totalNotebooks)
 {
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_DEPTH_TEST);
@@ -397,8 +397,8 @@ void drawDevourCounter(int w, int h, int queimados, int totalHDs)
 
     begin2D(w, h);
 
-    int restantes = totalHDs - queimados;
-    std::string texto = "HDs CORROMPIDOS RESTANTES: " + std::to_string(restantes);
+    int restantes = totalNotebooks - queimados;
+    std::string texto = "NOTEBOOKS CORROMPIDOS RESTANTES: " + std::to_string(restantes);
 
     float scale = 0.00025f * h; 
     float x = (float)w - 900.0f; 

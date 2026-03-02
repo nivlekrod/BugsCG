@@ -25,7 +25,7 @@
 #include "core/config.h"
 #include "core/window.h"
 
-// --- VARIÁVEIS DO DEVOUR ---
+// --- VARIÁVEIS DO BUGS ---
 int componentesCarregados = 0;
 int componentesQueimados = 0;
 int faseAtual = 1;
@@ -82,7 +82,7 @@ bool gameInit(const char *mapPath)
     // HUD de Terror (Overlay de dano e cura)
     gHudTex.texDamage = gAssets.texDamage;
     gHudTex.texHealthOverlay = gAssets.texHealthOverlay;
-    gHudTex.texHD = gAssets.texEnemies[4];
+    gHudTex.texNotebook = gAssets.texEnemies[4];
 
     // Armas / FPS
     gHudTex.texGunDefault = gAssets.texGunDefault;
@@ -147,8 +147,8 @@ bool gameInit(const char *mapPath)
 
 void gameReset()
 {
-    // Se a função foi chamada com todos os HDs queimados, é porque você GANHOU a fase!
-    if (componentesQueimados >= gLevel.totalHDs && gLevel.totalHDs > 0)
+    // Se a função foi chamada com todos os Notebooks queimados, é porque você GANHOU a fase!
+    if (componentesQueimados >= gLevel.totalNotebooks && gLevel.totalNotebooks > 0)
     {
         if (faseAtual >= 3)
             faseAtual = 1; // Zerou o jogo? Recomeça a tortura
@@ -175,7 +175,7 @@ void gameReset()
     applySpawn(gLevel, camX, camZ);// Volta o player pro lugar de início
     yaw = 180.0f;
 
-    // --- 3. RESETA O MAPA (Revive HDs e Troca o Boss) ---
+    // --- 3. RESETA O MAPA (Revive Notebooks e Troca o Boss) ---
     gLevel.enemies.resize(gLevel.originalEnemyCount); // Remove os inimigos spawnados dinamicamente durante a partida
     gLevel.items.clear();                              // Remove itens (munição) que spawnaram durante a partida
     resetSpawnState();                                 // Zera os timers de spawn para não spawnar imediatamente ao reiniciar
@@ -264,7 +264,7 @@ void gameUpdate(float dt)
 
     updateEntities(dt);
 
-    if (componentesQueimados >= gLevel.totalHDs && gLevel.totalHDs > 0 && !doorActive)
+    if (componentesQueimados >= gLevel.totalNotebooks && gLevel.totalNotebooks > 0 && !doorActive)
     {
         if (faseAtual >= 3)
         {
@@ -348,7 +348,7 @@ void gameRender()
     else if (g.state == GameState::PAUSADO)
     {
         drawWorld3D();
-        hudRenderAll(janelaW, janelaH, gHudTex, hs, false, false, true, componentesQueimados, gLevel.totalHDs);
+        hudRenderAll(janelaW, janelaH, gHudTex, hs, false, false, true, componentesQueimados, gLevel.totalNotebooks);
         pauseMenuRender(janelaW, janelaH, g.time);
     }
     else if (g.state == GameState::FASE_CONCLUIDA)
@@ -369,7 +369,7 @@ void gameRender()
     else
     {
         drawWorld3D();
-        hudRenderAll(janelaW, janelaH, gHudTex, hs, true, true, true, componentesQueimados, gLevel.totalHDs);
+        hudRenderAll(janelaW, janelaH, gHudTex, hs, true, true, true, componentesQueimados, gLevel.totalNotebooks);
         menuMeltRenderOverlay(janelaW, janelaH, g.time);
     }
     glutSwapBuffers();

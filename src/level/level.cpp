@@ -21,9 +21,9 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
     // Limpa entidades antigas se houver
     lvl.enemies.clear();
     lvl.items.clear();
-    lvl.totalHDs = 0;
+    lvl.totalNotebooks = 0;
 
-    // 2. Escaneia o mapa procurando Bosses e o HD
+    // 2. Escaneia o mapa procurando Bosses e o Notebook
     const auto& data = lvl.map.data();
     int H = lvl.map.getHeight();
 
@@ -73,7 +73,7 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
                 lvl.enemies.push_back(e);
 
                 if (enemyType == 4)
-                    lvl.totalHDs++;
+                    lvl.totalNotebooks++;
             }
         }
     }

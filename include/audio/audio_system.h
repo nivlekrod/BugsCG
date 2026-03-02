@@ -29,8 +29,8 @@ struct AudioSystem {
     ALuint bufHurt = 0;
     ALuint bufClickReload = 0;
     ALuint bufKill = 0;
-    ALuint bufCollectHD = 0;
-    ALuint bufBurnHD = 0;
+    ALuint bufCollectNotebook = 0;
+    ALuint bufBurnNotebook = 0;
 
     ALuint bufLava = 0;
     ALuint bufBreath = 0;
@@ -48,8 +48,8 @@ struct AudioSystem {
     ALuint srcHurt = 0;
     ALuint srcClickReload = 0;
     ALuint srcKill = 0;
-    ALuint srcCollectHD = 0;
-    ALuint srcBurnHD = 0;
+    ALuint srcCollectNotebook = 0;
+    ALuint srcBurnNotebook = 0;
     ALuint srcBurnLava = 0;
     float burnLavaTimer = 0.0f;
 
@@ -95,8 +95,8 @@ void audioPlayReload(AudioSystem& a);
 void audioPlayPumpClick(AudioSystem& a);
 void audioPlayHurt(AudioSystem& a);
 void audioPlayKillAt(AudioSystem& a, float x, float z);
-void audioPlayCollectHD(AudioSystem& a);
-void audioPlayBurnHD(AudioSystem& a);
+void audioPlayCollectNotebook(AudioSystem& a);
+void audioPlayBurnNotebook(AudioSystem& a);
 
 // Utilitário (se você quiser tocar "grunhido" a cada N tiros)
 void audioOnPlayerShot(AudioSystem& a);

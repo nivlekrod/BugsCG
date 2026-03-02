@@ -43,7 +43,7 @@ enum ItemType
     ITEM_HEALTH,
     ITEM_AMMO,
     ITEM_AMMO_BOX,
-    ITEM_HD  // Caso você use HDs no chão no seu jogo
+    ITEM_NOTEBOOK  // Notebook coletável
 };
 
 struct Item

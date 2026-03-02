@@ -6,7 +6,7 @@
 #include <cstdlib> 
 #include <cstdio>  
 
-// --- VARIÁVEIS EXTERNAS DO DEVOUR ---
+// --- VARIÁVEIS EXTERNAS DO BUGS ---
 extern int componentesCarregados;
 extern int componentesQueimados;
 extern int faseAtual;
@@ -50,10 +50,13 @@ void updateEntities(float dt)
     auto& audio = gameAudio();
 
     // --- LÓGICA DE SPAWN DE NOVOS INIMIGOS COM O TEMPO ---
+    // Para de spawnar quando todos os notebooks foram queimados
+    if (componentesQueimados < lvl.totalNotebooks)
+    {
     spawnNewEnemyTimer -= dt;
     if (spawnNewEnemyTimer <= 0.0f)
     {
-        // O tempo diminui conforme mais HDs são queimados (mínimo de 10s)
+        // O tempo diminui conforme mais Notebooks são queimados (mínimo de 10s)
         spawnNewEnemyTimer = 45.0f - (componentesQueimados * 3.0f);
         if (spawnNewEnemyTimer < 10.0f) spawnNewEnemyTimer = 10.0f;
 
@@ -146,6 +149,7 @@ void updateEntities(float dt)
             }
         }
     }
+    } // fim do guard: para de spawnar quando todos queimados
 
     // --- LÓGICA DE COLETA DE ITENS ---
     for (auto& item : lvl.items)
@@ -167,7 +171,7 @@ void updateEntities(float dt)
         }
     }
 
-    // Apenas passamos pelas entidades (Bosses e HDs)
+    // Apenas passamos pelas entidades (Bosses e Notebooks)
     for (auto& en : lvl.enemies)
     {
         if (en.type == 5) continue; // Luminária - estática, sem IA
@@ -175,7 +179,7 @@ void updateEntities(float dt)
         // --- LÓGICA DE RESPAWN PARA INIMIGOS MORTOS ---
         if (en.state == STATE_DEAD) 
         {
-            // Apenas inimigos (0, 1, 2) dão respawn, HDs (4) não!
+            // Apenas inimigos (0, 1, 2) dão respawn, Notebooks (4) não!
             if (en.type == 0 || en.type == 1 || en.type == 2)
             {
                 if (en.respawnTimer > 0.0f)
@@ -206,7 +210,7 @@ void updateEntities(float dt)
         if (en.type == 0 || en.type == 1 || en.type == 2) 
         {
             // --- CÁLCULO DE DIFICULDADE ---
-            // A velocidade aumenta conforme os HDs são queimados
+            // A velocidade aumenta conforme os Notebooks são queimados
             float baseSpeed = ENEMY_SPEED * 0.7f;
             float speedBoost = 1.0f + (componentesQueimados * 0.20f); 
             float moveStep = baseSpeed * speedBoost * dt;
@@ -245,16 +249,16 @@ void updateEntities(float dt)
             }
         }
         // =============================================================
-        // 2. COLETÁVEL (Tipo 4 = HD)
+        // 2. COLETÁVEL (Tipo 4 = Notebook)
         // =============================================================
         else if (en.type == 4)
         {
             if (dist < 2.5f && componentesCarregados == 0)
             {
-                en.state = STATE_DEAD; // O HD some do mapa
+                en.state = STATE_DEAD; // O Notebook some do mapa
                 componentesCarregados = 1;
-                audioPlayCollectHD(audio);
-                printf("\n>>> HD RECOLHIDO! Corra para o Altar (Bloco 9)!\n");
+                audioPlayCollectNotebook(audio);
+                printf("\n>>> NOTEBOOK RECOLHIDO! Corra para o Altar (Bloco 9)!\n");
             }
         }
     }

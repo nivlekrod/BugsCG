@@ -15,7 +15,7 @@
 #include "core/player.h"
 #include "core/entities.h"
 
-// --- VARIÁVEIS EXTERNAS DO DEVOUR ---
+// --- VARIÁVEIS EXTERNAS DO BUGS ---
 extern int componentesCarregados;
 extern int componentesQueimados;
 extern int faseAtual;
@@ -129,8 +129,8 @@ void keyboard(unsigned char key, int, int)
             else if (componentesCarregados > 0 && pertoDoIncinerador) {
                 componentesCarregados = 0;
                 componentesQueimados++;
-                audioPlayBurnHD(gameAudio());
-                printf("\n>>> SUCESSO! Peça destruida! Total: %d/%d\n", componentesQueimados, gameLevel().totalHDs);
+                audioPlayBurnNotebook(gameAudio());
+                printf("\n>>> SUCESSO! Peça destruida! Total: %d/%d\n", componentesQueimados, gameLevel().totalNotebooks);
             }
             else if (componentesCarregados > 0 && !pertoDoIncinerador) {
                 printf("\n>>> ERRO: Voce nao esta no Incinerador (Bloco 9)!\n");

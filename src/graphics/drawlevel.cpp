@@ -772,7 +772,7 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_GREATER, 0.1f);
 
-    // --- CORREÇÃO: Aplica a lanterna nos HDs e Monstros ---
+    // --- CORREÇÃO: Aplica a lanterna nos Notebooks e Monstros ---
     if (shaderLanterna) {
         shaderLanterna->use();
         shaderLanterna->setInt("uTexture", 0);
@@ -782,7 +782,7 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
     float fwdx, fwdz;
     bool hasFwd = getForwardXZ(dx, dz, fwdx, fwdz);
 
-    // --- INIMIGOS E HDs ---
+    // --- INIMIGOS E NOTEBOOKS ---
     for (const auto &en : enemies)
     {
         if (en.state == STATE_DEAD)
