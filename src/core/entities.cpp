@@ -180,7 +180,7 @@ void updateEntities(float dt)
         if (en.state == STATE_DEAD) 
         {
             // Apenas inimigos (0, 1, 2) dão respawn, Notebooks (4) não!
-            if (en.type == 0 || en.type == 1 || en.type == 2)
+            if ((en.type == 0 || en.type == 1 || en.type == 2) && componentesQueimados < lvl.totalNotebooks)
             {
                 if (en.respawnTimer > 0.0f)
                 {
