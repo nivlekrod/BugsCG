@@ -31,6 +31,11 @@ int componentesQueimados = 0;
 int faseAtual = 1;
 bool doorActive = false;
 
+// --- ESTADO DE INTERAÇÃO / CONTAGEM ---
+bool g_pertoDoIncinerador = false;
+int g_aliveEnemyCount = 0;
+float g_enemySpawnNotifTimer = 0.0f;
+
 static HudTextures gHudTex;
 static GameContext g;
 static GameAssets gAssets;
@@ -264,20 +269,38 @@ void gameUpdate(float dt)
 
     updateEntities(dt);
 
+    // --- Contagem de inimigos vivos ---
+    g_aliveEnemyCount = 0;
+    for (auto& en : gLevel.enemies)
+        if ((en.type == 0 || en.type == 1 || en.type == 2) && en.state != STATE_DEAD)
+            g_aliveEnemyCount++;
+
+    if (g_enemySpawnNotifTimer > 0.0f)
+        g_enemySpawnNotifTimer -= dt;
+
+    // --- Proximidade ao incinerador (bloco '9') ---
+    {
+        float tile = gLevel.metrics.tile;
+        float offX = gLevel.metrics.offsetX;
+        float offZ = gLevel.metrics.offsetZ;
+        int pX = (int)((camX - offX) / tile);
+        int pZ = (int)((camZ - offZ) / tile);
+        g_pertoDoIncinerador = false;
+        for (int bz = pZ - 1; bz <= pZ + 1 && !g_pertoDoIncinerador; bz++)
+            for (int bx = pX - 1; bx <= pX + 1 && !g_pertoDoIncinerador; bx++)
+                if (bz >= 0 && bz < gLevel.map.getHeight() && bx >= 0 && bx < (int)gLevel.map.data()[bz].size())
+                    if (gLevel.map.data()[bz][bx] == '9')
+                        g_pertoDoIncinerador = true;
+    }
+
+    // --- Ativação do portal / purificação do núcleo ---
     if (componentesQueimados >= gLevel.totalNotebooks && gLevel.totalNotebooks > 0 && !doorActive)
     {
+        doorActive = true;
         if (faseAtual >= 3)
-        {
-            // Fase 3: sem portal, transição direta para tela final
-            g.state = GameState::JOGO_ZERADO;
-            glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
-            printf("\n>>> FASE 3 CONCLUÍDA! JOGO ZERADO!\n");
-        }
+            printf("\n>>> TODOS OS NOTEBOOKS PURIFICADOS! Elimine os inimigos e purifique o nucleo!\n");
         else
-        {
-            doorActive = true;
             printf("\n>>> TODOS OS COMPONENTES QUEIMADOS! Um portal apareceu na lava. Vá até ele e pressione E!\n");
-        }
     }
 
     if (g.player.health <= 0)
@@ -373,6 +396,30 @@ void gameRender()
     {
         drawWorld3D();
         hudRenderAll(janelaW, janelaH, gHudTex, hs, true, true, true, componentesQueimados, gLevel.totalNotebooks);
+        drawEnemyCount(janelaW, janelaH, g_aliveEnemyCount, g_enemySpawnNotifTimer);
+
+        // Prompts de interação perto do incinerador
+        if (g_pertoDoIncinerador)
+        {
+            if (doorActive && g_aliveEnemyCount == 0)
+            {
+                if (faseAtual >= 3)
+                    drawInteractionPrompt(janelaW, janelaH, "Pressione [E] para Purificar o Nucleo", 0.2f, 1.0f, 0.6f);
+                else
+                    drawInteractionPrompt(janelaW, janelaH, "Pressione [E] para Entrar no Portal", 0.2f, 1.0f, 0.6f);
+            }
+            else if (doorActive && g_aliveEnemyCount > 0)
+            {
+                char aviso[96];
+                sprintf(aviso, "Elimine todos os inimigos! (%d restantes)", g_aliveEnemyCount);
+                drawInteractionPrompt(janelaW, janelaH, aviso, 1.0f, 0.3f, 0.3f);
+            }
+            else if (componentesCarregados > 0)
+            {
+                drawInteractionPrompt(janelaW, janelaH, "Pressione [E] para Purificar Notebook", 0.9f, 0.9f, 0.2f);
+            }
+        }
+
         menuMeltRenderOverlay(janelaW, janelaH, g.time);
     }
     glutSwapBuffers();

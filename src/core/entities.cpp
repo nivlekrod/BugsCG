@@ -10,6 +10,7 @@
 extern int componentesCarregados;
 extern int componentesQueimados;
 extern int faseAtual;
+extern float g_enemySpawnNotifTimer;
 
 // MANTIDO: Função de colisão original do seu motor
 bool isWalkable(float x, float z)
@@ -106,6 +107,7 @@ void updateEntities(float dt)
             newEn.respawnTimer = 0.0f;
             
             lvl.enemies.push_back(newEn);
+            g_enemySpawnNotifTimer = 2.0f;
             printf("\n>>> NOVO INIMIGO SPAWNOU! A tensao aumenta...\n");
 
             enemiesSpawnedThisPhase++;

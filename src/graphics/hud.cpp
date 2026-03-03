@@ -412,3 +412,76 @@ void drawBugsCounter(int w, int h, int queimados, int totalNotebooks)
     end2D();
     glPopAttrib();
 }
+
+void drawInteractionPrompt(int w, int h, const char* text, float r, float gc, float b)
+{
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+
+    begin2D(w, h);
+
+    std::string t(text);
+    float scale = 0.00030f * h;
+    float textWidth = 0.0f;
+    for (char c : t)
+        textWidth += glutStrokeWidth(GLUT_STROKE_ROMAN, c);
+    textWidth *= scale;
+
+    float x = (w - textWidth) / 2.0f;
+    float y = h * 0.22f;
+
+    // Sombra
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glLineWidth(3.0f);
+    glPushMatrix();
+    glTranslatef(x + 2.0f, y - 2.0f, 0);
+    glScalef(scale, scale, 1);
+    for (char c : t) glutStrokeCharacter(GLUT_STROKE_ROMAN, c);
+    glPopMatrix();
+
+    // Texto
+    glColor3f(r, gc, b);
+    glLineWidth(2.0f);
+    glPushMatrix();
+    glTranslatef(x, y, 0);
+    glScalef(scale, scale, 1);
+    for (char c : t) glutStrokeCharacter(GLUT_STROKE_ROMAN, c);
+    glPopMatrix();
+
+    end2D();
+    glPopAttrib();
+}
+
+void drawEnemyCount(int w, int h, int aliveCount, float spawnNotifTimer)
+{
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+
+    begin2D(w, h);
+
+    std::string texto = "INIMIGOS: " + std::to_string(aliveCount);
+    float scale = 0.00025f * h;
+    float x = (float)w - 900.0f;
+    float y = (float)h - 85.0f;
+
+    if (aliveCount == 0)
+        glColor3f(0.0f, 1.0f, 0.0f);
+    else
+        glColor3f(1.0f, 0.3f, 0.3f);
+
+    uiDrawStrokeText(x, y, (char*)texto.c_str(), scale);
+
+    if (spawnNotifTimer > 0.0f)
+    {
+        glColor3f(1.0f, 0.0f, 0.0f);
+        float notifX = x + 280.0f;
+        uiDrawStrokeText(notifX, y, "+1", scale * 1.2f);
+    }
+
+    end2D();
+    glPopAttrib();
+}

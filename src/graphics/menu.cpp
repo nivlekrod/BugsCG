@@ -318,7 +318,7 @@ void menuRender(int screenW, int screenH, float tempo,
     subW *= scaleSub;
 
     float xSub = (screenW - subW) / 2.0f;
-    float ySub = (screenH / 2.0f) - 90.0f;
+    float ySub = (screenH / 2.0f) - 160.0f;
 
     if ((int)(tempo * 3) % 2 == 0)
         glColor3f(1, 1, 1);

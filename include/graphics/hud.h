@@ -46,3 +46,6 @@ void hudRenderAll(
     bool showDoomBar,
     int queimados,
     int totalNotebooks);
+
+void drawInteractionPrompt(int w, int h, const char* text, float r, float g, float b);
+void drawEnemyCount(int w, int h, int aliveCount, float spawnNotifTimer);

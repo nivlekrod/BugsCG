@@ -117,13 +117,18 @@ void keyboard(unsigned char key, int, int)
 
             // Interagir com a porta de transição
             if (doorActive && pertoDoIncinerador) {
-                doorActive = false;
-                if (faseAtual >= 3) {
-                    gameSetState(GameState::JOGO_ZERADO);
+                extern int g_aliveEnemyCount;
+                if (g_aliveEnemyCount > 0) {
+                    printf("\n>>> Ainda há %d inimigos vivos! Elimine todos primeiro!\n", g_aliveEnemyCount);
                 } else {
-                    gameSetState(GameState::FASE_CONCLUIDA);
+                    doorActive = false;
+                    if (faseAtual >= 3) {
+                        gameSetState(GameState::JOGO_ZERADO);
+                    } else {
+                        gameSetState(GameState::FASE_CONCLUIDA);
+                    }
+                    glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
                 }
-                glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
             }
             // Queimar notebook no incinerador
             else if (componentesCarregados > 0 && pertoDoIncinerador) {
