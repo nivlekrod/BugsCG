@@ -912,8 +912,8 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
         }
     }
 
-    // --- PORTAL DE TRANSIÇÃO (aparece na lava quando todos os notebooks foram queimados) ---
-    if (doorActive && sHasLavaCenter && r.texPortal != 0 && r.progPortal != 0)
+    // --- PORTAL DE TRANSIÇÃO (aparece na lava quando todos os notebooks foram queimados, exceto fase 3) ---
+    if (doorActive && faseAtual < 3 && sHasLavaCenter && r.texPortal != 0 && r.progPortal != 0)
     {
         glUseProgram(r.progPortal);
         glUniform1i(glGetUniformLocation(r.progPortal, "uTexture"), 0);
