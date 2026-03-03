@@ -21,6 +21,7 @@
 #include "core/player.h"
 #include "core/entities.h"
 #include "audio/audio_system.h"
+#include "graphics/particles.h"
 #include "utils/assets.h"
 #include "core/config.h"
 #include "core/window.h"
@@ -268,6 +269,7 @@ void gameUpdate(float dt)
     }
 
     updateEntities(dt);
+    updateParticles(dt);
 
     // --- Contagem de inimigos vivos ---
     g_aliveEnemyCount = 0;
@@ -337,6 +339,7 @@ void drawWorld3D()
 
     // CORRIGIDO: Agora chamamos com "gLevel.items"
     drawEntities(gLevel.enemies, gLevel.items, camX, camZ, dirX, dirZ, g.r, g.time);
+    renderParticles(camX, camY, camZ);
 
     // Altar 3D (4 pilares + losangos + pirâmide + esfera) apenas na fase 3
     if (faseAtual == 3 && gLevel.hasLavaCenter)

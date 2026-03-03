@@ -14,6 +14,7 @@
 #include "core/config.h"
 #include "core/player.h"
 #include "core/entities.h"
+#include "graphics/particles.h"
 
 // --- VARIÁVEIS EXTERNAS DO BUGS ---
 extern int componentesCarregados;
@@ -164,6 +165,7 @@ void keyboard(unsigned char key, int, int)
                 componentesQueimados = 0;
                 componentesCarregados = 0;
                 resetSpawnState();
+                clearParticles();
                 gameContext().player.health = 100;
                 gameContext().player.currentAmmo = 12;
                 gameContext().player.reserveAmmo = 25;

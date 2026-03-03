@@ -11,12 +11,13 @@
 // para correr, ou tempo máximo de lanterna), você pode colocar aqui!
 #include "core/camera.h"
 #include "audio/audio_system.h"
+#include "graphics/particles.h"
 #include <cmath>
 
 constexpr int MAX_MAGAZINE = 12;
 
 // Ajuste fino: raio do hitbox do inimigo no chão (mundo XZ)
-static constexpr float HIT_RADIUS = 0.55f;
+static constexpr float HIT_RADIUS = 1.0f;
 
 // Ajuste fino: alcance máximo do tiro no mundo
 static constexpr float MAX_RANGE  = 17.0f;
@@ -127,6 +128,9 @@ void playerTryAttack()
         auto &en = lvl.enemies[bestIdx];
         en.hp -= 30;
         en.hurtTimer = 0.5f;
+
+        float hitY = camY + bestT * tanPitch;
+        spawnBloodParticles(en.x, hitY, en.z);
 
         if (en.hp <= 0)
         {
