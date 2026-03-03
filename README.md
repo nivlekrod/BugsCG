@@ -1,4 +1,9 @@
 # BugsCGame - The Backrooms Escape
+Projeto desenvolvido para disciplina de Computação Gráfica.
+
+👤🤝 Colaboradores:
+- [Heloysa Gama](https://github.com/helxysa)
+- [Gabriel Auzier](https://github.com/auziergabriel)
 
 ## 📖 1. História do Jogo (Lore)
 Você é um especialista em cibersegurança que foi digitalizado e arrastado para as profundezas da rede — um labirinto de servidores corrompidos, escuro e claustrofóbico. Uma horda de **Bugs** monstruosos e implacáveis está atacando a internet de dentro para fora, espalhando o caos. O ambiente é um breu quase total, iluminado apenas por algumas lâmpadas de dados que piscam em curto-circuito e pelo brilho incandescente da "Lixeira do Sistema" — um poço de lava digital localizado no centro do mapa.
