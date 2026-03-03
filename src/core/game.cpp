@@ -268,8 +268,9 @@ void gameUpdate(float dt)
     {
         if (faseAtual >= 3)
         {
-            // Fase 3: sem portal, transição direta
-            g.state = GameState::FASE_CONCLUIDA;
+            // Fase 3: sem portal, transição direta para tela final
+            g.state = GameState::JOGO_ZERADO;
+            glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
             printf("\n>>> FASE 3 CONCLUÍDA! JOGO ZERADO!\n");
         }
         else
@@ -356,7 +357,9 @@ void gameRender()
         drawWorld3D();
         GLuint fundoOriginal = g.r.texMenuBG;
         g.r.texMenuBG = g.r.texTelaWin;
-        menuRender(janelaW, janelaH, g.time, "", "Pressione ENTER para ir para a Fase 2", g.r);
+        char subtitulo[64];
+        sprintf(subtitulo, "Pressione ENTER para ir para a Fase %d", faseAtual + 1);
+        menuRender(janelaW, janelaH, g.time, "", subtitulo, g.r);
         g.r.texMenuBG = fundoOriginal;
     }
     else if (g.state == GameState::JOGO_ZERADO)
